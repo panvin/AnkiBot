@@ -170,3 +170,4 @@ cython_debug/
 settings.py
 # On ignore la base de donnée
 *.sqlite
+.vscode/
