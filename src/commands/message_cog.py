@@ -1,5 +1,6 @@
 from disnake.ext import commands
 from disnake import Colour, Embed
+from views.ephemeral_counter import EphemeralCounter
 import random
 
 class MessageCog(commands.Cog):
@@ -16,6 +17,11 @@ class MessageCog(commands.Cog):
     async def choose(self, ctx, *choices: str):
         """Chooses between multiple choices."""
         await ctx.send(random.choice(choices))
+
+    @commands.command()
+    async def counter(self, ctx: commands.Context):
+        """Starts a counter for pressing."""
+        await ctx.send("Press!", view=EphemeralCounter())
 
     @commands.command(description="Affichage de l'aide")
     async def help(self, ctx):

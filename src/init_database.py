@@ -1,5 +1,5 @@
 import sqlite3
-from settings import dbPath
+from settings import db_path
 
 
 class dbInit():
@@ -43,7 +43,7 @@ class dbInit():
                                         server_id integer NOT NULL,
                                         deck_name text NOT NULL,
                                         is_updated integer NOT NULL,
-                                        user_in_charge text NOT NULL,
+                                        user_in_charge text,
                                         FOREIGN KEY (server_id) REFERENCES Servers (id)
                                     );"""
         
@@ -58,7 +58,7 @@ class dbInit():
                                     );"""
 
         # create a database connection
-        conn = self.create_connection(dbPath)
+        conn = self.create_connection(db_path)
 
         # create tables
         if conn is not None:

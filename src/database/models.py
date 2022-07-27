@@ -7,20 +7,20 @@ class BaseModel(Model):
         database = db
 
 class Servers(BaseModel):
-    id = PrimaryKeyField()
+    id = IntegerField(primary_key=True)
     server_name = CharField()
     study_channel = TextField()
 
 class Decks(BaseModel):
-    id = PrimaryKeyField()
-    server_id = ForeignKeyField(Servers, field=Servers.id)
+    id = AutoField()
+    server_id = ForeignKeyField(Servers, to_field=id)
     deck_name = CharField()
     is_updated = BooleanField(default = True)
     user_in_charge = CharField()
 
 class Cards(BaseModel):
-    id = PrimaryKeyField()
-    deck_id = ForeignKeyField(Decks, field=Decks.id)
+    id = AutoField()
+    deck_id = ForeignKeyField(Decks, to_field=id)
     card_name = CharField()
     first_field = TextField()
     second_field = TextField() 

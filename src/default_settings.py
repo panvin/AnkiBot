@@ -8,3 +8,5 @@
 my_discord_token='token_ici'
 # Cette variable contient le path vers la bbase de donnée sqlite
 db_path='/path/vers/ma/db.sqlite'
+# Id du serveuir de test
+test_guild=00000000000000

@@ -1,20 +1,23 @@
 
+from time import sleep
 from database.query import Query
 from settings import db_path
-
-# rec1 = Servers.create(id = 1235, server_name = "Le serveur des canards", study_channel = "Channel1234")
-
-# rec2 = Decks.create(id = 1, server_id = 1234, deck_name = "Deck name", is_updated = True, user_in_charge = "Vincent")
-
-# rec3 = Cards.create(id = 1, deck_id = 1, card_name = "Card name", first_field = "Question", second_field = "Reponse", is_active = True)
-
-#rec = Servers.get_by_id(1235)
-#rec.server_name = "Le serveur des ours"
-#rec.save()
-#print(rec.server_name)
+from settings import test_guild
+import random
+import string
 
 query = Query(db_path)
 
-deck_list = query.get_decksList(1234)
-print(deck_list.deck_name)
+# deck_list = query.get_decksList(1234)
+query.create_server(test_guild, "Test serveurs")
 
+S = 10  # number of characters in the string.  
+
+for i in [0,1,2,3,4,5]:
+    ran = ''.join(random.choices(string.ascii_uppercase + string.digits, k = S))
+    deck = query.create_deck(test_guild, deck_name=ran)
+    for i in [0,1,2,3]:
+        ran2 = ''.join(random.choices(string.ascii_uppercase + string.digits, k = S))
+        query.create_card(deck.id+1, ran2, "Question", "Réponse ")
+        sleep(1)
+    sleep(1)

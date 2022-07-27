@@ -1,11 +1,16 @@
 from disnake.ext import commands
+from database.query import Query
+from disnake import Colour, Embed
+from settings import db_path
 import disnake
 import asyncio
+
 
 class SlashCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.query = Query(db_path)
     
     
     @commands.slash_command()
@@ -21,6 +26,21 @@ class SlashCog(commands.Cog):
         # Sends a modal using a high level implementation.
         await inter.response.send_message("Ceci est un message éphémère", ephemeral=True)
 
+    @commands.slash_command(description="Affiche la liste des decks")
+    async def show_deck_list(self, inter: disnake.CommandInteraction):
+        # Sends a modal using a high level implementation.
+        
+        deck_list= self.query.get_decks_list(inter.guild_id)
+
+        deck_list_as_string = ''
+
+        for deck in deck_list:
+            deck_list_as_string = deck_list_as_string.join(f"{deck.id} : {deck.deck_name}\n")
+
+        embed = Embed(title="Liste des commandes disponibles: ", color=Colour.gold())
+        embed.add_field(name="id : Nom du module", value=deck_list_as_string, inline=False)
+
+        await inter.response.send_message(embed=embed, ephemeral=True)
 
     @commands.slash_command()
     async def create_card(self, inter: disnake.CommandInteraction):

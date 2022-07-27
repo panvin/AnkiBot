@@ -15,28 +15,32 @@ class Query:
         return func
 
     @connection_wrapper
-    def get_decksList(self,id):
-        deck_list =  Decks.get(server_id=id)
+    def get_decks_list(self,id):
+        deck_list =  Decks.select().where(Decks.server_id==id)
         return deck_list
 
     @connection_wrapper
-    def get_deck(self,id):
+    def get_deck_by_id(self,id):
         deck =  Decks.get(id=id)
         return deck
 
     @connection_wrapper
-    def get_decksList(self,id):
-        deck_list =  Decks.get(server_id=id)
-        return deck_list
+    def get_card_list(self,id):
+        card_list =  Cards.get_by_id(id)
+        return card_list
 
     @connection_wrapper
-    def get_decksList(self,id):
-        deck_list =  Decks.get(server_id=id)
-        return deck_list
+    def create_card(self, deck_id, card_name, first_field, second_field):
+        card = Cards.create(deck_id = deck_id, card_name=card_name, first_field=first_field, second_field=second_field)
+        return card
 
     @connection_wrapper
-    def get_decksList(self,id):
-        deck_list =  Decks.get(server_id=id)
-        return deck_list
-    
+    def create_deck(self, server_id, deck_name):
+        deck = Decks.create(server_id = server_id, deck_name=deck_name)
+        return deck
+
+    @connection_wrapper
+    def create_server(self, server_id, server_name):
+        server = Servers.create(id=server_id, server_name = server_name)
+        return server
     
