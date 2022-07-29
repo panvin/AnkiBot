@@ -1,11 +1,12 @@
 from disnake.ext import commands
 from disnake import Colour, Embed
 from views.ephemeral_counter import EphemeralCounter
-import random
+from views.helper import DropdownView
+from views.buttons import RowButtons
 
 class MessageCog(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
     
     @commands.command()
@@ -35,5 +36,21 @@ class MessageCog(commands.Cog):
 
         await ctx.send(embed=embed)
 
-def setup(bot):
+    @commands.command()
+    async def colour(self, ctx):
+
+        # Create the view containing our dropdown
+        view = DropdownView()
+
+        # Sending a message containing our view
+        await ctx.send("Pick your favourite colour:", view=view)
+    
+    @commands.command()
+    async def buttons(self, ctx):
+
+        # Sends a message with a row of buttons.
+        await ctx.send("Here are some buttons!", view=RowButtons())
+
+
+def setup(bot :commands.Bot):
     bot.add_cog(MessageCog(bot))
