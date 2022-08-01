@@ -37,9 +37,18 @@ class Query:
         return deck
     
     @connection_wrapper
-    def get_decks_list(self,id):
-        deck_list =  Decks.select().where(Decks.server_id==id)
+    def get_decks_list(self,id : int):
+        deck_list =  list(Decks.select().where(Decks.server_id==id))
         return deck_list
+
+    @connection_wrapper
+    def get_decks_as_dictionnary(self,id : int):
+        deck_list =  list(Decks.select().where(Decks.server_id==id))
+        deck_dictionnary = {}
+        for deck in deck_list:
+            deck_dictionnary[deck.id]=deck.deck_name
+        return deck_dictionnary
+
 
     @connection_wrapper
     def get_deck_by_id(self,id: int):
@@ -48,7 +57,7 @@ class Query:
 
     @connection_wrapper
     def update_deck_manager(self, deck_id: int, manager: str):
-        query = Decks.update(user_in_charge=manager).where(id == deck_id)
+        query = Decks.update(user_in_charge=manager).where(Decks.id == deck_id)
         return query.execute()
     
     ######################################################

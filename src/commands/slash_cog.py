@@ -1,7 +1,8 @@
 from disnake.ext import commands
 from  disnake.utils import get
 from database.query import Query
-from disnake import Colour, Embed, Guild
+from views.deck_management import DeckManagementView
+from disnake import Colour, Embed
 from settings import db_path
 import disnake
 import asyncio
@@ -97,56 +98,6 @@ class SlashCog(commands.Cog):
             embed.add_field(name=custom_id.capitalize(), value=value, inline=False)
         await modal_inter.response.send_message(embed=embed)
 
-    @commands.slash_command()
-    async def create_tag_low(self, inter: disnake.CommandInteraction):
-        # Works same as the above code but using a low level interface.
-        # It's recommended to use this if you don't want to increase cache usage.
-        await inter.response.send_modal(
-            title="Create Tag",
-            custom_id="create_tag_low",
-            components=[
-                disnake.ui.TextInput(
-                    label="Name",
-                    placeholder="The name of the tag",
-                    custom_id="name",
-                    style=disnake.TextInputStyle.short,
-                    max_length=50,
-                ),
-                disnake.ui.TextInput(
-                    label="Description",
-                    placeholder="The description of the tag",
-                    custom_id="description",
-                    style=disnake.TextInputStyle.short,
-                    min_length=5,
-                    max_length=50,
-                ),
-                disnake.ui.TextInput(
-                    label="Content",
-                    placeholder="The content of the tag",
-                    custom_id="content",
-                    style=disnake.TextInputStyle.paragraph,
-                    min_length=5,
-                    max_length=1024,
-                ),
-            ],
-        )
-
-        # Waits until the user submits the modal.
-        try:
-            modal_inter: disnake.ModalInteraction = await self.bot.wait_for(
-                "modal_submit",
-                check=lambda i: i.custom_id == "create_tag_low" and i.author.id == inter.author.id,
-                timeout=300,
-            )
-        except asyncio.TimeoutError:
-            # The user didn't submit the modal in the specified period of time.
-            # This is done since Discord doesn't dispatch any event for when a modal is closed/dismissed.
-            return
-
-        embed = disnake.Embed(title="Tag Creation")
-        for custom_id, value in modal_inter.text_values.items():
-            embed.add_field(name=custom_id.capitalize(), value=value, inline=False)
-        await modal_inter.response.send_message(embed=embed)
 
 ###########################################################################################################################
 
@@ -214,9 +165,10 @@ class SlashCog(commands.Cog):
             # Si la mention ressemble à <@&numero_id> => rôle
 
             if "&" in manager or "!" in manager:
-                manager_id = manager[3:-1]
+            # Gestion d'erreur à ajouter
+                manager_id = int(manager[3:-1])
             else:
-                manager_id = manager[2:-1]
+                manager_id = int(manager[2:-1])
 
             is_role_in_guild = inter.guild.get_role(manager_id) is None 
             is_user_in_guild = inter.guild.get_member(manager_id) is None
@@ -224,10 +176,9 @@ class SlashCog(commands.Cog):
             if is_role_in_guild or is_user_in_guild:
                 deck = self.query.get_deck_by_id(deck_id)
                 self.query.update_deck_manager(deck_id, manager_id)
-                message = f"{manager} a été ajouté comme responsable au deck **f{deck.deck_name}**"
+                message = f"{manager} a été désigné comme responsable au deck **{deck.deck_name}**"
                 is_ephemeral = False
         
-        message = f"`{manager} {manager_id} {is_role_in_guild} {is_user_in_guild}`"
         await inter.response.send_message(message, ephemeral=is_ephemeral)
 
     def confirmation_deck_embed(self, deck_name, deck_id, deck_manager=None):
@@ -247,6 +198,17 @@ class SlashCog(commands.Cog):
         embed.add_field(name = manager_title, value = manager_value,inline=False)
         embed.add_field(name = help_title,    value = help_value,inline=False)
         return embed
+    
+    @commands.slash_command(description="Gestionnaire de Deck")
+    async def manage_deck(self, inter: disnake.CommandInteraction):
+        
+        # Create the view containing our dropdown
+        decks_list = self.query.get_decks_list(inter.guild_id)
+        view = DeckManagementView(decks_list)
+
+        # Sending a message containing our view
+        await inter.send("**Gestion des decks:** ", view=view, ephemeral=True)
+
 
 def setup(bot : commands.Bot):
     bot.add_cog(SlashCog(bot))

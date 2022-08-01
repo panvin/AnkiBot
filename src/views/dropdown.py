@@ -1,34 +1,40 @@
 import disnake
 
-class Dropdown(disnake.ui.Select):
-    def __init__(self, text):
+class DeckDropdown(disnake.ui.Select):
+    def __init__(self, row, is_disabled, deck_list):
+        options = []
+        for deck in deck_list:
+            deck_option = disnake.SelectOption(
+                label=deck.deck_name,
+                value=deck.id
+            )
+            options.append(deck_option)
 
-        # Set the options that will be presented inside the dropdown
-        options = [
-            disnake.SelectOption(
-                label=text[0], description="Your favourite colour is red", emoji="🟥"
-            ),
-            disnake.SelectOption(
-                label=text[1], description="Your favourite colour is green", emoji="🟩"
-            ),
-            disnake.SelectOption(
-                label=text[2], description="Your favourite colour is blue", emoji="🟦"
-            ),
-        ]
-
-        # The placeholder is what will be shown when no option is chosen
-        # The min and max values indicate we can only pick one of the three options
-        # The options parameter defines the dropdown options. We defined this above
         super().__init__(
-            placeholder="Choose your favourite colour...",
+            custom_id="deck_dropdown",
+            placeholder="Choix du deck",
             min_values=1,
             max_values=1,
             options=options,
+            row=row,
+            disabled=is_disabled,
         )
 
-    async def callback(self, interaction: disnake.MessageInteraction):
-        # Use the interaction object to send a response message containing
-        # the user's favourite colour or choice. The self object refers to the
-        # Select object, and the values attribute gets a list of the user's
-        # selected options. We only want the first one.
-        await interaction.response.send_message(f"Your favourite colour is {self.values[0]}")
+class CardDropdown(disnake.ui.Select):
+    def __init__(self, row, is_disabled, card_list):
+        options = []
+        for card in card_list:
+            card_option = disnake.SelectOption(
+                label=card.card_name,
+                value=card.id
+            )
+            options.append(card_option)
+
+        super().__init__(
+            placeholder="Choix de la carte question: ",
+            min_values=1,
+            max_values=1,
+            options=options,
+            row=row,
+            disabled=is_disabled
+        )
