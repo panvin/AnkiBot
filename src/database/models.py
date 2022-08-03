@@ -6,17 +6,21 @@ class BaseModel(Model):
     class Meta:
         database = db
 
-class Servers(BaseModel):
-    id = IntegerField(primary_key=True)
-    server_name = CharField()
-    study_channel = TextField()
+class Batches(BaseModel):
+    id = AutoField()
+    server_id = IntegerField()
+    batch_name = CharField()
+    batch_manager = IntegerField()
+    batch_member = IntegerField()
+    study_channel = IntegerField()
+    delay = IntegerField(default = 240)
 
 class Decks(BaseModel):
     id = AutoField()
-    server_id = ForeignKeyField(Servers, to_field=id)
+    batch_id = ForeignKeyField(Batches, to_field=id)
     deck_name = CharField()
     is_updated = BooleanField(default = True)
-    user_in_charge = CharField()
+    deck_manager = IntegerField()
 
 class Cards(BaseModel):
     id = AutoField()
@@ -24,4 +28,3 @@ class Cards(BaseModel):
     card_name = CharField()
     first_field = TextField()
     second_field = TextField() 
-    is_active = BooleanField(default = True)

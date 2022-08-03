@@ -1,6 +1,7 @@
 from disnake.ext import commands
 from disnake import Colour, Embed
-from views.ephemeral_counter import EphemeralCounter
+from database.query import Query
+from views.deck_management import DeckManagementView
 import random
 
 class MessageCog(commands.Cog):
@@ -18,11 +19,6 @@ class MessageCog(commands.Cog):
         """Chooses between multiple choices."""
         await ctx.send(random.choice(choices))
 
-    @commands.command()
-    async def counter(self, ctx: commands.Context):
-        """Starts a counter for pressing."""
-        await ctx.send("Press!", view=EphemeralCounter())
-
     @commands.command(description="Affichage de l'aide")
     async def help(self, ctx):
         command_string= """`?add chiffre chiffre`:\tAjoute deux nombres\n
@@ -34,6 +30,28 @@ class MessageCog(commands.Cog):
         embed.add_field(name="Commandes", value=command_string, inline=False)
 
         await ctx.send(embed=embed)
+
+    ########################################################################
+
+    @commands.slash_command()
+    async def _manage_decks(self, ctx, batch_id:int = None):
+        """Menu interactif pour la gestion des Decks 
+
+        Parameters
+        ----------
+        batch_id: L'identifiant unique de la promotion  
+        """
+        if batch_id is None:
+            print (ctx.bot.guild.id)
+            batch_id = Query().get_default_batch(ctx.bot.guild.id)
+            print(batch_id)
+
+        # Create the view containing our dropdown
+        deck_list = Query().get_decks_list(batch_id)
+        view = DeckManagementView(deck_list)
+
+        # Sending a message containing our view
+        await ctx.send("**Gestion des Decks: ** ", view=view, ephemeral=True)
 
 def setup(bot :commands.Bot):
     bot.add_cog(MessageCog(bot))

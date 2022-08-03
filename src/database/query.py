@@ -1,9 +1,10 @@
 from .models import *
 from .db_manager import dbManager
+from settings import db_path
 
 class Query:
 
-    def __init__(self, db_path):
+    def __init__(self):
         self.manager = dbManager(db, db_path)
 
     ######################################################
@@ -19,27 +20,45 @@ class Query:
         return func
 
     ######################################################
-    #                Servers Queries                     #
+    #                Batches Queries                     #
     ######################################################
 
     @connection_wrapper
-    def create_server(self, server_id, server_name):
-        server = Servers.create(id=server_id, server_name = server_name)
-        return server
+    def create_batch(self, server_id :int, name :str, manager :int, member :int, channel :int, delay :int):
+        batch = Batches.create( server_id=server_id, batch_name=name, batch_manager=manager, batch_member=member, study_channel=channel, delay=delay)
+        return batch
+
+    @connection_wrapper
+    def is_default_batch_created(self, server_id):
+        batch = Batches.get_or_none(Batches.server_id == server_id, Batches.batch_name == "default")
+        if batch is None:
+            return False
+        else:
+            return True
+
+    @connection_wrapper
+    def get_batches_list(self, server_id):
+        batches_list =  list(Batches.select().where(Batches.server_id==server_id))
+        return batches_list
+
+    @connection_wrapper
+    def get_default_batch(server_id):
+        batch = Batches.get_or_none(Batches.server_id == server_id, Batches.batch_name == "default")
+        return batch
 
     ######################################################
     #                 Decks Queries                      #
     ######################################################
 
     @connection_wrapper
-    def create_deck(self, server_id: int, deck_name: str, user_in_charge:str = None):
-        deck = Decks.create(server_id = server_id, deck_name=deck_name, user_in_charge=user_in_charge)
+    def create_deck(self, batch_id: int, deck_name: str, user_in_charge:str = None):
+        deck = Decks.create(batch_id = batch_id, deck_name=deck_name, user_in_charge=user_in_charge)
         return deck
     
     @connection_wrapper
     def get_decks_list(self,id : int):
-        deck_list =  list(Decks.select().where(Decks.server_id==id))
-        return deck_list
+        decks_list =  list(Decks.select().join(Batches).where(Batches.server_id==id))
+        return decks_list
 
     @connection_wrapper
     def get_decks_as_dictionnary(self,id : int):
@@ -69,7 +88,7 @@ class Query:
         card = Cards.create(deck_id = deck_id, card_name=card_name, first_field=first_field, second_field=second_field)
         return card
     
-    # @connection_wrapper
-   # def get_card_list(self,id):
-   #     card_list =  Cards.get_by_id(id)
-   #     return card_list
+    @connection_wrapper
+    def get_cards_list(self, deck_id):
+        card_list =  list(Cards.select().where(Cards.deck_id==deck_id))
+        return card_list

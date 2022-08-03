@@ -1,11 +1,7 @@
-import random
 import disnake
 from disnake.ext import commands
-import asyncio
-# from card_modal import CardModal
 from settings import my_discord_token
 from settings import test_guild
-from database.query import Query
 
 intents = disnake.Intents.default()
 intents.members = True
@@ -20,12 +16,8 @@ bot = commands.Bot(
     help_command=None                                   #   On désactive l'aide par défaut et on crée la notre
 )
 
-bot.load_extension('commands.slash_cog')
-bot.load_extension('commands.message_cog')
-
-@bot.event
-async def on_ready():
-    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
-    print("------")
+bot.load_extension('events.slash_cog')
+bot.load_extension('events.commands_cog')
+bot.load_extension('events.events_cog')
 
 bot.run(my_discord_token)

@@ -1,15 +1,14 @@
 
 from time import sleep
 from database.query import Query
-from settings import db_path
 from settings import test_guild
 import random
 import string
 
-query = Query(db_path)
+query = Query()
 
 # deck_list = query.get_decksList(1234)
-query.create_server(test_guild, "Test serveurs")
+#query.create_server(test_guild, "Test serveurs")
 
 S = 10  # number of characters in the string.  
 
