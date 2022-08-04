@@ -12,7 +12,7 @@ class CardManagementView(disnake.ui.View):
         ########################## Première Ligne
 
         # Menu déroulant contenant les cartes questions
-        self.card_dropdown=CardDropdown(row = 1, is_disabled = True, card_list=None)
+        self.card_dropdown=CardDropdown(row = 1, is_disabled = False, card_list=card_list)
         self.card_dropdown.callback=self.select_card_callback
         self.add_item(self.card_dropdown)
 

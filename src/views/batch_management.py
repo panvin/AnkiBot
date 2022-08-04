@@ -1,5 +1,8 @@
 import disnake
 from views.dropdown import BatchDropdown
+from views.modals import BatchModal
+from views.deck_management import DeckManagementView
+from database.query import Query
 
 class BatchManagementView(disnake.ui.View):
     message: disnake.Message
@@ -16,19 +19,24 @@ class BatchManagementView(disnake.ui.View):
         self.add_item(self.batch_dropdown)
 
         ########################## Seconde Ligne
-
-        # Bouton d'affichage d'information
-        self.add_batch_button=disnake.ui.Button(label = "Ajouter une promo", row = 2, style=disnake.ButtonStyle.primary, disabled = False)
+        
+        # Bouton d'ajout de promotions
+        self.add_batch_button=disnake.ui.Button(label = "Nouveau", row = 2, style=disnake.ButtonStyle.green, disabled = False)
         self.add_batch_button.callback=self.add_batch_callback
         self.add_item(self.add_batch_button)
-
+        
         # Bouton d'affichage d'information
-        self.manage_deck_button=disnake.ui.Button(label = "Gestion de deck", row = 2, style=disnake.ButtonStyle.secondary, disabled = True)
+        self.show_batch_button=disnake.ui.Button(label = "Infos", row = 2, style=disnake.ButtonStyle.primary, disabled = True)
+        self.show_batch_button.callback=self.show_batch_callback
+        self.add_item(self.show_batch_button)
+
+        # Bouton permettant l'accès à la gestion de deck
+        self.manage_deck_button=disnake.ui.Button(label = "Decks", row = 2, style=disnake.ButtonStyle.primary, disabled = True)
         self.manage_deck_button.callback=self.manage_deck_callback
         self.add_item(self.manage_deck_button)
         
-        # Bouton d'affichage de modification
-        self.update_batch_button=disnake.ui.Button(label = "Modifier", row = 2, style=disnake.ButtonStyle.green, disabled = True)
+        # Bouton de mise à jour de la promotion
+        self.update_batch_button=disnake.ui.Button(label = "Modifier", row = 2, style=disnake.ButtonStyle.primary, disabled = True)
         self.update_batch_button.callback=self.update_batch_callback
         self.add_item(self.update_batch_button)
 
@@ -41,7 +49,8 @@ class BatchManagementView(disnake.ui.View):
 
     async def select_batch_callback(self, interaction: disnake.MessageInteraction):
 
-        self.manage_deck_button.disabled = False
+        self.show_batch_button.disabled   = False
+        self.manage_deck_button.disabled  = False
         self.update_batch_button.disabled = False
         self.delete_batch_button.disabled = False
         for option in self.batch_dropdown.options:
@@ -52,18 +61,51 @@ class BatchManagementView(disnake.ui.View):
         await interaction.response.edit_message("**Gestion des Promotions:** ", view=self)
 
     async def add_batch_callback(self, interaction: disnake.MessageInteraction):
+        """Création d'une nouvelle promotion 
 
-        await interaction.send("Ajout d'une promotion", ephemeral=True)
+        Parameters
+        ---------- 
+        """
+        batch_modal = BatchModal(interaction.id)
+        await interaction.response.send_modal( modal = batch_modal)
+        #supression du message initial ou mise à jour de la liste de batch
+
+    async def show_batch_callback(self, interaction: disnake.MessageInteraction):
+        """Affichage d'informations et de commandes relatives à la promo affichée 
+
+        Parameters
+        ---------- 
+        """
+        batch_modal = BatchModal(interaction.id)
+        await interaction.response.send_modal( modal = batch_modal)
+        #supression du message initial ou mise à jour de la liste de batch
+        
 
     async def manage_deck_callback(self, interaction: disnake.MessageInteraction):
+        """Accès à l'interface de gestion de Decks 
+
+        Parameters
+        ---------- 
+        """
         selected_batch_id=int(self.batch_dropdown.values[0])
-        bot = interaction.bot
-        await interaction.send("Gestion des decks", ephemeral=True)
-        #await bot.invoke(bot.get_command("manage_decks"), batch_id = selected_batch_id)
-        #await interaction.bot.get_slash_command("manage_decks").callback(inter =interaction, batch_id = selected_batch_id)    
+        deck_list = Query().get_decks_list_from_batch(selected_batch_id)
+ #       if deck_list is None or len(deck_list) == 0: 
+ #           await interaction.response.send_message("La promotion ne contient aucun deck", ephemeral = True)
+ #       else:
+        new_view = DeckManagementView(selected_batch_id, deck_list)
+        await interaction.response.edit_message("**Gestion des Decks:** ", view=new_view)
     
     async def update_batch_callback(self, interaction: disnake.MessageInteraction):
+        """Mise à jour du nom du Batch 
 
+        Parameters
+        ---------- 
+        """
+        selected_batch_id=int(self.batch_dropdown.values[0])
+        batch = Query().get_batch_by_id(selected_batch_id)
+        batch_modal = BatchModal(interaction.id, batch)
+        await interaction.response.send_modal( modal = batch_modal)
+        #supression du message initial ou mise à jour de la liste de batch
         await interaction.send("Mise à jour de la promotion", ephemeral=True)
         
     async def delete_batch_callback(self, interaction: disnake.MessageInteraction):

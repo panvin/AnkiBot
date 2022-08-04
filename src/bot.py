@@ -17,6 +17,7 @@ bot = commands.Bot(
 )
 
 bot.load_extension('events.slash_cog')
+bot.load_extension('events.role_cog')
 bot.load_extension('events.commands_cog')
 bot.load_extension('events.events_cog')
 

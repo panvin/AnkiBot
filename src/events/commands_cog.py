@@ -31,27 +31,5 @@ class MessageCog(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    ########################################################################
-
-    @commands.slash_command()
-    async def _manage_decks(self, ctx, batch_id:int = None):
-        """Menu interactif pour la gestion des Decks 
-
-        Parameters
-        ----------
-        batch_id: L'identifiant unique de la promotion  
-        """
-        if batch_id is None:
-            print (ctx.bot.guild.id)
-            batch_id = Query().get_default_batch(ctx.bot.guild.id)
-            print(batch_id)
-
-        # Create the view containing our dropdown
-        deck_list = Query().get_decks_list(batch_id)
-        view = DeckManagementView(deck_list)
-
-        # Sending a message containing our view
-        await ctx.send("**Gestion des Decks: ** ", view=view, ephemeral=True)
-
 def setup(bot :commands.Bot):
     bot.add_cog(MessageCog(bot))

@@ -46,37 +46,59 @@ class Query:
         batch = Batches.get_or_none(Batches.server_id == server_id, Batches.batch_name == "default")
         return batch
 
+    @connection_wrapper
+    def get_batch_by_id(self,id: int):
+        batch =  Batches.get_by_id(id)
+        return batch
+
+    @connection_wrapper
+    def update_batch_manager(self, batch_id: int, manager: int):
+        query = Batches.update(batch_manager=manager).where(Batches.id == batch_id)
+        return query.execute()
+
+    @connection_wrapper
+    def update_batch_member(self, batch_id: int, member: int):
+        query = Batches.update(batch_member=member).where(Batches.id == batch_id)
+        return query.execute()
+
+    @connection_wrapper
+    def update_batch_name(self, batch_id: int, name: str):
+        query = Batches.update(batch_name=name).where(Batches.id == batch_id)
+        return query.execute()
+
     ######################################################
     #                 Decks Queries                      #
     ######################################################
 
     @connection_wrapper
-    def create_deck(self, batch_id: int, deck_name: str, user_in_charge:str = None):
-        deck = Decks.create(batch_id = batch_id, deck_name=deck_name, user_in_charge=user_in_charge)
+    def create_deck(self, batch_id: int, deck_name: str, manager:str = None):
+        deck = Decks.create(batch_id = batch_id, deck_name=deck_name, deck_manager=manager)
         return deck
     
     @connection_wrapper
-    def get_decks_list(self,id : int):
+    def get_decks_list_from_server(self,id : int):
         decks_list =  list(Decks.select().join(Batches).where(Batches.server_id==id))
         return decks_list
 
     @connection_wrapper
-    def get_decks_as_dictionnary(self,id : int):
-        deck_list =  list(Decks.select().where(Decks.server_id==id))
-        deck_dictionnary = {}
-        for deck in deck_list:
-            deck_dictionnary[deck.id]=deck.deck_name
-        return deck_dictionnary
+    def get_decks_list_from_batch(self,id : int):
+        decks_list =  list(Decks.select().where(Decks.batch_id==id))
+        return decks_list
 
 
     @connection_wrapper
-    def get_deck_by_id(self,id: int):
+    def get_deck_by_id(self, id: int):
         deck =  Decks.get_by_id(id)
         return deck
 
     @connection_wrapper
     def update_deck_manager(self, deck_id: int, manager: str):
-        query = Decks.update(user_in_charge=manager).where(Decks.id == deck_id)
+        query = Decks.update(deck_manager = manager).where(Decks.id == deck_id)
+        return query.execute()
+
+    @connection_wrapper
+    def update_deck_name(self, deck_id: int, name: str):
+        query = Decks.update(deck_name=name).where(Decks.id == deck_id)
         return query.execute()
     
     ######################################################
@@ -92,3 +114,8 @@ class Query:
     def get_cards_list(self, deck_id):
         card_list =  list(Cards.select().where(Cards.deck_id==deck_id))
         return card_list
+
+    @connection_wrapper
+    def update_card_fields(self, card_id: int, name: str, first_field: str, second_field: str):
+        query = Cards.update(card_name = name, first_field = first_field, second_field = second_field).where(Cards.id == card_id)
+        return query.execute()
