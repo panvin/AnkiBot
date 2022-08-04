@@ -162,7 +162,7 @@ class CardModal(disnake.ui.Modal):
     async def callback(self, inter: disnake.ModalInteraction):
         name = inter.text_values.get("card-name")
         first_field = inter.text_values.get("card-first-field")
-        second_field = inter.text_values.get("card-first-field")
+        second_field = inter.text_values.get("card-second-field")
 
         if self.card is None:
             parent_deck_id = self.deck_id
@@ -173,7 +173,7 @@ class CardModal(disnake.ui.Modal):
             card_id = self.card.id
             
             Query().update_card_fields(card_id = card_id, name = name, first_field = first_field, second_field = second_field)
-            await inter.response.send_message("Carte mise à jour")
+            await inter.response.send_message("Carte mise à jour", ephemeral = True)
 
         
 

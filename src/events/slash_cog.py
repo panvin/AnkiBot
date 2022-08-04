@@ -37,66 +37,16 @@ class SlashCog(commands.Cog):
         Parameters
         ---------- 
         """
-        await inter.response.send_modal(
-            title="Créer un Deck",
-            custom_id="create_deck_custom_id",
-            components=[
-                disnake.ui.TextInput(
-                    label="Nom",
-                    placeholder="Le nom du deck à créer",
-                    custom_id="name",
-                    style=disnake.TextInputStyle.short,
-                    min_length=3,
-                    max_length=100
-                )
-            ],
-        )
+        await inter.response.send_modal()
 
-        # Waits until the user submits the modal.
-        try:
-            modal_inter: disnake.ModalInteraction = await self.bot.wait_for(
-                "modal_submit",
-                check=lambda i: i.custom_id == "create_deck_custom_id" and i.author.id == inter.author.id,
-                timeout=300,
-            )
-        except asyncio.TimeoutError:
-            # The user didn't submit the modal in the specified period of time.
-            # This is done since Discord doesn't dispatch any event for when a modal is closed/dismissed.
-            return
-
-        deck_name = modal_inter.text_values.get("name").capitalize()
-        
-        deck=self.query.create_deck(server_id = inter.guild_id, deck_name = deck_name)
-
-        embed = self.confirmation_deck_embed(deck_name = deck_name, deck_id = deck.id)
-        await modal_inter.response.send_message(embed=embed, ephemeral=True)
+        #await inter.response.send_message(embed=embed, ephemeral=True)
 
     @commands.slash_command()
     async def create_card(self, inter: disnake.CommandInteraction):
-        # Works same as the above code but using a low level interface.
-        # It's recommended to use this if you don't want to increase cache usage.
-        await inter.response.send_modal(
-            title="Ajout de carte à un deck",
-            custom_id="create_card",
-            components = [
-                disnake.ui.TextInput(
-                    label="Question",
-                    placeholder="Question à ajouter au deck",
-                    custom_id="question",
-                    style=disnake.TextInputStyle.short,
-                    min_length=3,
-                    max_length=500,
-                ),
-                disnake.ui.TextInput(
-                    label="Réponse",
-                    placeholder="Réponse",
-                    custom_id="reponse",
-                    style=disnake.TextInputStyle.paragraph,
-                    min_length=3,
-                    max_length=4000,
-                ),
-            ],
-        )
+        
+
+        card_modal = CardModal(interaction_id = interaction.id, deck_id = card.deck_id, card = card)
+        await inter.response.send_modal( modal = card_modal)
 
         # Waits until the user submits the modal.
         try:

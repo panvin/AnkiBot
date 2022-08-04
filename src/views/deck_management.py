@@ -93,7 +93,7 @@ class DeckManagementView(disnake.ui.View):
         selected_deck_id=int(self.deck_dropdown.values[0])
         deck = Query().get_deck_by_id(selected_deck_id)
         deck_modal = DeckModal(interaction_id = interaction.id, batch_id = deck.batch_id, deck = deck)
-        # await interaction.response.send_modal( modal = deck_modal)
+        await interaction.response.send_modal( modal = deck_modal)
         #supression du message initial ou mise à jour de la liste de batch
         
 

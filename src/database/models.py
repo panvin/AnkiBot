@@ -17,14 +17,14 @@ class Batches(BaseModel):
 
 class Decks(BaseModel):
     id = AutoField()
-    batch_id = ForeignKeyField(Batches, to_field=id)
+    batch_id = ForeignKeyField(model=Batches)
     deck_name = CharField()
     is_updated = BooleanField(default = True)
     deck_manager = IntegerField()
 
 class Cards(BaseModel):
     id = AutoField()
-    deck_id = ForeignKeyField(Decks, to_field=id)
+    deck_id = ForeignKeyField(model=Decks)
     card_name = CharField()
     first_field = TextField()
     second_field = TextField() 

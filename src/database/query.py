@@ -119,3 +119,8 @@ class Query:
     def update_card_fields(self, card_id: int, name: str, first_field: str, second_field: str):
         query = Cards.update(card_name = name, first_field = first_field, second_field = second_field).where(Cards.id == card_id)
         return query.execute()
+
+    @connection_wrapper
+    def get_card_by_id(self, id: int):
+        card =  Cards.get_by_id(id)
+        return card
