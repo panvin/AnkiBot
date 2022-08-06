@@ -8,7 +8,7 @@ class BatchManagementView(disnake.ui.View):
     message: disnake.Message
 
     def __init__(self, batch_list):
-        super().__init__(timeout=30.0)
+        super().__init__(timeout=300.0)
         self.batches_list=batch_list
         
         ########################## Première Ligne
@@ -92,7 +92,7 @@ class BatchManagementView(disnake.ui.View):
  #       if deck_list is None or len(deck_list) == 0: 
  #           await interaction.response.send_message("La promotion ne contient aucun deck", ephemeral = True)
  #       else:
-        new_view = DeckManagementView(selected_batch_id, deck_list)
+        new_view = DeckManagementView(deck_list)
         await interaction.response.edit_message("**Gestion des Decks:** ", view=new_view)
     
     async def update_batch_callback(self, interaction: disnake.MessageInteraction):

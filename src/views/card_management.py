@@ -6,10 +6,9 @@ from database.query import Query
 class CardManagementView(disnake.ui.View):
     message: disnake.Message
 
-    def __init__(self, deck_id, card_list):
-        super().__init__(timeout=30.0)
-        self.card_list=card_list
-        self.deck_id=deck_id
+    def __init__(self, card_list):
+        super().__init__(timeout=300.0)
+        self.card_list = card_list
         
         ########################## Première Ligne
 

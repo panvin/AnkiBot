@@ -62,7 +62,7 @@ class RoleCog(commands.Cog):
 
         if self.is_new_mention_valid_and_in_server(member, inter.guild):
             batch = Query().get_batch_by_id(batch_id)
-            Query().update_batch_manager(batch_id, manager_id)
+            Query().update_batch_manager(batch_id, member)
             message = f"{member} a maintenant accès aux deck: **{batch.batch_name}**"
         else:
             message = "L'utilisateur  ou le rôle mentionné est incorrect"

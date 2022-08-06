@@ -6,10 +6,9 @@ from views.card_management import CardManagementView
 
 class DeckManagementView(disnake.ui.View):
 
-    def __init__(self, batch_id, decks_list):
-        super().__init__(timeout=30.0)
+    def __init__(self, decks_list):
+        super().__init__(timeout=300.0)
         self.decks_list=decks_list
-        self.batch_id = batch_id
         
         ########################## Première Ligne
         
@@ -67,9 +66,17 @@ class DeckManagementView(disnake.ui.View):
         Parameters
         ---------- 
         """
-        deck_modal = DeckModal(interaction_id = interaction.id, batch_id = self.batch_id)
-        await interaction.response.send_modal( modal = deck_modal)
-        #supression du message initial ou mise à jour de la liste de decks
+        batch_list = []
+        for deck in self.decks_list:
+            if deck.batch_id is not None and deck.batch_id not in batch_list:
+                batch_list.append(deck.batch_id)
+
+        if len(batch_list) > 1 :
+            await interaction.send(f"Affichage selection promotion", ephemeral=True)
+        else:
+            batch_id = batch_list[0]
+            deck_modal = DeckModal(interaction_id = interaction.id, batch_id = self.batch_id)
+            await interaction.response.send_modal( modal = deck_modal)
 
     async def show_deck_callback(self, interaction: disnake.MessageInteraction):
         await interaction.send(f"Affichage d'informations", ephemeral=True)
@@ -81,7 +88,7 @@ class DeckManagementView(disnake.ui.View):
         if card_list is None or len(card_list) == 0: 
             await interaction.response.send_message("Le deck ne contient aucune carte", ephemeral = True)
         else:
-            new_view = CardManagementView(selected_deck_id, card_list)
+            new_view = CardManagementView(card_list)
             await interaction.response.edit_message("**Gestion des Decks:** ", view=new_view)
     
     async def update_deck_callback(self, interaction: disnake.MessageInteraction):

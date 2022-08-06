@@ -1,3 +1,4 @@
+from dataclasses import MISSING
 from disnake.ext import commands
 from  disnake.utils import get
 from database.query import Query
@@ -8,6 +9,7 @@ from views.modals import *
 from disnake import Colour, Embed
 import disnake
 import asyncio
+import genanki
 
 
 class SlashCog(commands.Cog):
@@ -16,9 +18,27 @@ class SlashCog(commands.Cog):
         self.bot = bot
         self.query = Query()
     
+    def get_available_batches(self, member : disnake.Member):
+        #On récupère les identifiants de roles
+        role_id = []
+        for role in member.roles:
+            role_id.append(role.id)
+        return self.query.get_batches_from_roles(role_list = role_id)
+
+    def get_available_decks(self, member : disnake.Member):
+        role_id = []
+        for role in member.roles:
+            role_id.append(role.id)
+        return self.query.get_decks_from_roles(role_list = role_id)
+
+    def get_available_cards(self, member : disnake.Member):
+        role_id = []
+        for role in member.roles:
+            role_id.append(role.id)
+        return self.query.get_cards_from_roles(role_list = role_id)
 
     # Create a Batch with Modal
-    @commands.slash_command(description = "Création d'un nouveau deck")
+    @commands.slash_command(description = "Création d'une nouvelle Promotion")
     async def create_batch(self, inter: disnake.CommandInteraction):
         """Création d'une nouvelle promotion 
 
@@ -30,9 +50,9 @@ class SlashCog(commands.Cog):
     
     
     # Create a Deck with Modal
-    @commands.slash_command(description = "Création d'un nouveau deck")
+    @commands.slash_command(description = "Création d'un nouveau Deck")
     async def create_deck(self, inter: disnake.CommandInteraction):
-        """Création d'un nouveau deck 
+        """Création d'un nouveau Deck 
 
         Parameters
         ---------- 
@@ -41,11 +61,11 @@ class SlashCog(commands.Cog):
 
         #await inter.response.send_message(embed=embed, ephemeral=True)
 
-    @commands.slash_command()
-    async def create_card(self, inter: disnake.CommandInteraction):
+    @commands.slash_command(description = "Création d'une nouvelle Carte question")
+    async def create_card(self, inter: disnake.CommandInteraction , deck_id :int):
         
 
-        card_modal = CardModal(interaction_id = interaction.id, deck_id = card.deck_id, card = card)
+        card_modal = CardModal(interaction_id = inter.id, deck_id = deck_id)
         await inter.response.send_modal( modal = card_modal)
 
         # Waits until the user submits the modal.
@@ -102,32 +122,61 @@ class SlashCog(commands.Cog):
         ----------
         batch_id: L'identifiant unique de la promotion  
         """
+        # Default behavior
+        is_authorized = False
+
+        available_batch = self.get_available_batches(inter.author)
+        for batch in available_batch:
+            if batch_id is not None and batch.id == int(batch_id):
+                is_authorized = True
+
         if batch_id is None:
-            print (inter.guild_id)
-            batch_id = Query().get_default_batch(inter.guild_id)
-            print(batch_id)
+            deck_list = self.get_available_decks(inter.author)
+            view = DeckManagementView(deck_list)
+            await inter.send("**Gestion des Decks:** ", view=view, ephemeral=True)
 
-        # Create the view containing our dropdown
-        deck_list = self.query.get_decks_list_from_batch(batch_id)
-        view = DeckManagementView(deck_list)
-
-        # Sending a message containing our view
-        await inter.send("**Gestion des Decks: ** ", view=view, ephemeral=True)
+        else:
+            if is_authorized:
+                deck_list = self.query.get_decks_list_from_batch(batch_id)
+                if deck_list is not None and len(deck_list) != 0:
+                    view = DeckManagementView(deck_list)
+                    await inter.send("**Gestion des Decks:** ", view=view, ephemeral=True)
+                else:
+                    await inter.send("⚠️ Cette Promotion n'existe pas", ephemeral=True)
+            else :
+                await inter.send("⚠️ Vous n'êtes pas autorisés à accéder au contenu de cette Promotion", ephemeral=True)
 
     @commands.slash_command(description="Gestionnaire de Cartes")
-    async def manage_cards(self, inter: disnake.CommandInteraction, deck_id):
-        """Menu interactif pour la gestion des Decks 
+    async def manage_cards(self, inter: disnake.CommandInteraction, deck_id : int =None):
+        """Menu interactif pour la gestion des Cartes 
 
         Parameters
         ----------
-        deck_id: L'identifiant unique du deck qui contient les Cartes  
+        deck_id: L'identifiant unique du deck qui contient les Cartes.
         """
-        deck_list = Query().get_cards_list(deck_id)
-        view = CardManagementView(deck_list)
+        # Default behavior
+        is_authorized = False
 
-        # Sending a message containing our view
-        await inter.send("**Gestion des Decks: ** ", view=view, ephemeral=True)
+        available_decks = self.get_available_decks(inter.author)
+        for deck in available_decks:
+            if deck_id is not None and deck.id == int(deck_id):
+                is_authorized = True
 
+        if deck_id is None:
+            card_list = self.get_available_cards(inter.author)
+            view = CardManagementView(card_list)
+            await inter.send("**Gestion des Cartes:** ", view=view, ephemeral=True)
+
+        else:
+            if is_authorized:
+                card_list = self.query.get_cards_list(deck_id)
+                if card_list is not None and len(card_list) != 0:
+                    view = CardManagementView(card_list)
+                    await inter.send("**Gestion des Cartes:** ", view=view, ephemeral=True)
+                else:
+                    await inter.send("⚠️ Ce deck n'existe pas", ephemeral=True)
+            else :
+                await inter.send("⚠️ Vous n'êtes pas autorisés à accéder au contenu de ce deck", ephemeral=True)                     
 
     @commands.slash_command(description="Initialisation du serveur")
     async def initialize(self, inter: disnake.CommandInteraction):
@@ -142,13 +191,33 @@ class SlashCog(commands.Cog):
             for channel in guild.text_channels:
                 if channel.permissions_for(guild.me).send_messages:
                     default_channel = channel
-                break #breaking so you won't send messages to multiple channels
+                break 
                         
             # Creation de la promo par défaut
             self.query.create_batch(server_id = guild.id, name = "default", manager = None, member = guild.id, channel=default_channel.id, delay = guild.id)
             print(f"Promo crée avec succès, suite de l'initialisation")
             await inter.send("La promotion a été crée avec succès, le bot est prêt")
 
+"""
+    @commands.slash_command(description="Génération de deck anki")
+    async def generate_anki_deck(self, inter: disnake.CommandInteraction, ):
+        my_model = genanki.Model(
+        1607392319,
+        'Simple Model',
+        fields=[
+            {'name': 'Question'},
+            {'name': 'Answer'},
+        ],
+        templates=[
+            {
+            'name': 'Card 1',
+            'qfmt': '{{Question}}',
+            'afmt': '{{FrontSide}}<hr id="answer">{{Answer}}',
+            },
+        ])
+
+    #def generate_list_anki_deck():
+"""
 
 def setup(bot : commands.Bot):
     bot.add_cog(SlashCog(bot))

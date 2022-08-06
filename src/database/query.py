@@ -14,10 +14,10 @@ class Query:
     def connection_wrapper(func):
         def function_wrapper(*args, **kwargs):
             args[0].manager.connect()
-            func(*args, **kwargs)
+            ret = func(*args, **kwargs)
             args[0].manager.close()
-            return function_wrapper
-        return func
+            return ret    
+        return function_wrapper
 
     ######################################################
     #                Batches Queries                     #
@@ -65,6 +65,11 @@ class Query:
     def update_batch_name(self, batch_id: int, name: str):
         query = Batches.update(batch_name=name).where(Batches.id == batch_id)
         return query.execute()
+    
+    @connection_wrapper
+    def get_batches_from_roles(self, role_list : list[int]):
+        batches_list = Batches.select().where(Batches.batch_member << role_list)
+        return batches_list
 
     ######################################################
     #                 Decks Queries                      #
@@ -92,6 +97,11 @@ class Query:
         return deck
 
     @connection_wrapper
+    def get_deck_or_none(self, id: int):
+        deck =  Decks.get_or_none(Decks.id == id)
+        return deck
+
+    @connection_wrapper
     def update_deck_manager(self, deck_id: int, manager: str):
         query = Decks.update(deck_manager = manager).where(Decks.id == deck_id)
         return query.execute()
@@ -100,6 +110,11 @@ class Query:
     def update_deck_name(self, deck_id: int, name: str):
         query = Decks.update(deck_name=name).where(Decks.id == deck_id)
         return query.execute()
+
+    @connection_wrapper
+    def get_decks_from_roles(self, role_list : list[int]):
+        decks_list = Decks.select().join(Batches, on=(Decks.batch_id == Batches.id)).where(Batches.batch_member << role_list)
+        return decks_list
     
     ######################################################
     #                   Cards Queris                     #
@@ -124,3 +139,9 @@ class Query:
     def get_card_by_id(self, id: int):
         card =  Cards.get_by_id(id)
         return card
+
+    @connection_wrapper
+    def get_cards_from_roles(self, role_list : list[int]):
+        subquery = Decks.select().join(Batches, on=(Decks.batch_id == Batches.id)).where(Batches.batch_member << role_list)
+        card_list = Cards.select().join(subquery, on=Cards.deck_id == subquery.c.id)
+        return card_list

@@ -9,7 +9,7 @@ class dbManager():
         self.db = database
 
     def connect(self):
-        self.db.connect()
+        self.db.connect(reuse_if_open=True)
 
     def close(self):
-        self.db.close
+        self.db.close()

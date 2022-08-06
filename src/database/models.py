@@ -1,6 +1,6 @@
 from peewee import *
 
-db = SqliteDatabase(None)
+db = SqliteDatabase(None, pragmas={'foreign_keys': 1})
 
 class BaseModel(Model):
     class Meta:
@@ -17,14 +17,14 @@ class Batches(BaseModel):
 
 class Decks(BaseModel):
     id = AutoField()
-    batch_id = ForeignKeyField(model=Batches)
+    batch = ForeignKeyField(model=Batches)
     deck_name = CharField()
     is_updated = BooleanField(default = True)
     deck_manager = IntegerField()
 
 class Cards(BaseModel):
     id = AutoField()
-    deck_id = ForeignKeyField(model=Decks)
+    deck = ForeignKeyField(model=Decks)
     card_name = CharField()
     first_field = TextField()
     second_field = TextField() 

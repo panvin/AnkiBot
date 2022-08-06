@@ -18,13 +18,14 @@ class DeckDropdown(disnake.ui.Select):
             for deck in deck_list:
                 deck_option = disnake.SelectOption(
                     label=deck.deck_name,
+                    description = f"Promotion: {deck.batch.batch_name}",
                     value=str(deck.id)
                 )
                 options.append(deck_option)
         self.options=options
 
 class CardDropdown(disnake.ui.Select):
-    def __init__(self, row, is_disabled, card_list=None):
+    def __init__(self, row, is_disabled, card_list = None):
         self.update_options(card_list)
 
         super().__init__(
@@ -39,9 +40,10 @@ class CardDropdown(disnake.ui.Select):
         if card_list is not None:
             for card in card_list:
                 card_option = disnake.SelectOption(
-                    label=card.card_name,
-                    value=str(card.id)
-                )
+                    label = card.card_name,
+                    description = f"Deck: {card.deck.deck_name}",
+                    value = str(card.id)
+                    )
                 options.append(card_option)
         self.options=options
 
