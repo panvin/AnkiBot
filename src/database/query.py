@@ -42,11 +42,6 @@ class Query:
         return batches_list
 
     @connection_wrapper
-    def get_default_batch(server_id):
-        batch = Batches.get_or_none(Batches.server_id == server_id, Batches.batch_name == "default")
-        return batch
-
-    @connection_wrapper
     def get_batch_by_id(self,id: int):
         batch =  Batches.get_by_id(id)
         return batch
@@ -71,6 +66,10 @@ class Query:
         batches_list = Batches.select().where(Batches.batch_member << role_list)
         return batches_list
 
+    @connection_wrapper
+    def count_decks_in_batches(self, batch_id: int):
+        return Decks.select().where(Decks.batch_id == batch_id).count()
+
     ######################################################
     #                 Decks Queries                      #
     ######################################################
@@ -79,11 +78,6 @@ class Query:
     def create_deck(self, batch_id: int, deck_name: str, manager:str = None):
         deck = Decks.create(batch_id = batch_id, deck_name=deck_name, deck_manager=manager)
         return deck
-    
-    @connection_wrapper
-    def get_decks_list_from_server(self,id : int):
-        decks_list =  list(Decks.select().join(Batches).where(Batches.server_id==id))
-        return decks_list
 
     @connection_wrapper
     def get_decks_list_from_batch(self,id : int):
@@ -115,6 +109,10 @@ class Query:
     def get_decks_from_roles(self, role_list : list[int]):
         decks_list = Decks.select().join(Batches, on=(Decks.batch_id == Batches.id)).where(Batches.batch_member << role_list)
         return decks_list
+
+    @connection_wrapper
+    def count_cards_in_decks(self, deck_id: int):
+        return Cards.select().where(Cards.deck_id == deck_id).count()
     
     ######################################################
     #                   Cards Queris                     #

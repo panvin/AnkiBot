@@ -1,4 +1,5 @@
 import disnake
+from views.batch_select import BatchSelectView
 from views.dropdown import DeckDropdown
 from database.query import Query
 from views.modals import DeckModal
@@ -8,6 +9,7 @@ class DeckManagementView(disnake.ui.View):
 
     def __init__(self, decks_list):
         super().__init__(timeout=300.0)
+        self.query = Query()
         self.decks_list=decks_list
         
         ########################## Première Ligne
@@ -66,24 +68,54 @@ class DeckManagementView(disnake.ui.View):
         Parameters
         ---------- 
         """
-        batch_list = []
+        batches_list = []
         for deck in self.decks_list:
-            if deck.batch_id is not None and deck.batch_id not in batch_list:
-                batch_list.append(deck.batch_id)
+            if deck.batch_id is not None and deck.batch_id not in batches_list:
+                batches_list.append(deck.batch_id)
 
-        if len(batch_list) > 1 :
-            await interaction.send(f"Affichage selection promotion", ephemeral=True)
-        else:
-            batch_id = batch_list[0]
-            deck_modal = DeckModal(interaction_id = interaction.id, batch_id = self.batch_id)
+        if batches_list is None or len(batches_list) == 0:
+            await interaction.response.send_message(" Vous n'êtes membre d'aucune promotion", ephemeral=True)
+        elif len(batches_list) == 1:
+            deck_modal = DeckModal(interaction_id = interaction.id, batch_id = batches_list[0])
             await interaction.response.send_modal( modal = deck_modal)
+        else:
+            deck_view = BatchSelectView(batches_list)
+            await interaction.response.edit_message( "Création:" , view = deck_view, ephemeral = True)
 
     async def show_deck_callback(self, interaction: disnake.MessageInteraction):
-        await interaction.send(f"Affichage d'informations", ephemeral=True)
+        
+        choosen_deck = None
+        for deck in self.decks_list:
+            if deck.id == int(self.deck_dropdown.values[0]):
+                choosen_deck = deck
+                break
+
+        if choosen_deck is not None:
+            card_count = self.query.count_cards_in_decks(choosen_deck.id)
+            deck_manager = "Non renseigné"
+            deck_manager_id = choosen_deck.deck_manager
+            # Dans le cas où on a un identifiant de manager
+            if deck_manager_id is not None:
+                # Dans le cas ou c'est @everyone
+                if deck_manager_id == interaction.guild_id:
+                    batch_manager = "@everyone" 
+                # Dans le cas ou c'est un rôle 
+                elif interaction.guild.get_role(deck_manager_id) is not None:
+                    batch_manager = f"<@{deck_manager_id}>" 
+                # Dans le cas où c'est un utilisateur
+                elif interaction.guild.get_member(deck_manager_id) is not None:
+                    batch_manager = f"<@!{deck_manager_id}>"
+                # Si l'utilisateur est inconnu
+                else:
+                    batch_manager = f"Utilisateur {deck_manager_id} inconnu"
+            message = f"**Deck:** {choosen_deck.deck_name} - **ID:** {choosen_deck.id}\n**Responsable du deck: **{deck_manager}\n**Nombre de Cartes:** {card_count}"
+        else:
+            message = "Une erreur s'est produit, impossible d'afficher les informations"
+        await interaction.send(message, ephemeral=True)
 
     async def manage_card_callback(self, interaction: disnake.MessageInteraction):
         selected_deck_id=int(self.deck_dropdown.values[0])
-        card_list = Query().get_cards_list(selected_deck_id)
+        card_list = self.query.get_cards_list(selected_deck_id)
         
         if card_list is None or len(card_list) == 0: 
             await interaction.response.send_message("Le deck ne contient aucune carte", ephemeral = True)
@@ -98,7 +130,7 @@ class DeckManagementView(disnake.ui.View):
         ---------- 
         """
         selected_deck_id=int(self.deck_dropdown.values[0])
-        deck = Query().get_deck_by_id(selected_deck_id)
+        deck = self.query.get_deck_by_id(selected_deck_id)
         deck_modal = DeckModal(interaction_id = interaction.id, batch_id = deck.batch_id, deck = deck)
         await interaction.response.send_modal( modal = deck_modal)
         #supression du message initial ou mise à jour de la liste de batch
@@ -109,6 +141,26 @@ class DeckManagementView(disnake.ui.View):
     async def delete_deck_callback(self, interaction: disnake.MessageInteraction):
 
         await interaction.send("Suppression en cours", ephemeral=True)
+
+    
+    def get_available_batches(self, member : disnake.Member):
+        #On récupère les identifiants de roles
+        role_id = []
+        for role in member.roles:
+            role_id.append(role.id)
+        return self.query.get_batches_from_roles(role_list = role_id)
+
+    def get_available_decks(self, member : disnake.Member):
+        role_id = []
+        for role in member.roles:
+            role_id.append(role.id)
+        return self.query.get_decks_from_roles(role_list = role_id)
+
+    def get_available_cards(self, member : disnake.Member):
+        role_id = []
+        for role in member.roles:
+            role_id.append(role.id)
+        return self.query.get_cards_from_roles(role_list = role_id)
     
     
     

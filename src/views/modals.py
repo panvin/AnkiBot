@@ -24,7 +24,7 @@ class BatchModal(disnake.ui.Modal):
             ]
 
         super().__init__(
-            title="Création/Modification de Promotions",
+            title="Ajout/Modification",
             custom_id=self.batch_custom_id,
             components=components,
             timeout=300
@@ -83,7 +83,7 @@ class DeckModal(disnake.ui.Modal):
             ]
 
         super().__init__(
-            title="Création/Modification de Decks",
+            title="Ajout/Modification",
             custom_id=self.deck_custom_id,
             components=components,
             timeout=300
@@ -153,7 +153,7 @@ class CardModal(disnake.ui.Modal):
             ]
 
         super().__init__(
-            title="Création/Modification de Cartes question",
+            title="Ajout/Modification",
             custom_id=self.card_custom_id,
             components=components,
             timeout=300

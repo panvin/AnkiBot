@@ -1,4 +1,5 @@
 
+import sqlite3
 from time import sleep
 from database.query import Query
 from settings import test_guild
@@ -12,11 +13,37 @@ query = Query()
 
 S = 10  # number of characters in the string.  
 
-for i in [0,1,2,3,4,5]:
-    ran = ''.join(random.choices(string.ascii_uppercase + string.digits, k = S))
-    deck = query.create_deck(test_guild, deck_name=ran)
-    for i in [0,1,2,3]:
-        ran2 = ''.join(random.choices(string.ascii_uppercase + string.digits, k = S))
-        query.create_card(deck.id+1, ran2, "Question", "Réponse ")
-        sleep(1)
-    sleep(1)
+#for i in [0,1,2,3,4,5]:
+#    ran = ''.join(random.choices(string.ascii_uppercase + string.digits, k = S))
+    # deck = query.create_deck(test_guild, deck_name=ran)
+#    try:
+#        deck = query.create_deck(batch_id = 2, deck_name=ran)
+#        for i in [0,1,2,3]:
+#            try:
+#                ran2 = ''.join(random.choices(string.ascii_uppercase + string.digits, k = S))
+#                query.create_card(deck.id, ran2, "Question", "Réponse ")
+#                sleep(1)
+#            except sqlite3.IntegrityError as err:
+#                print(f"Erreur Foreign Key pour le deck_id = {deck.id+1}")
+#        sleep(1)
+#    except sqlite3.IntegrityError as err:
+#        print(f"Erreur Foreign Key pour le batch_id = 2")
+
+print("Liste des batches")
+batches = query.get_batches_from_roles([1004066091590496322])
+for batch in batches:
+    print (f"{batch.id}\t{batch.batch_name}")
+
+print("\nListe des decks")
+decks = query.get_decks_from_roles([1004066091590496322])
+for deck in decks:
+    print (f"{deck.id}\t{deck.batch_id}\t{deck.deck_name}")
+
+print("\nListe des cartes")
+cards = query.get_cards_from_roles([1004066091590496322])
+for card in cards:
+    print (f"{card.id}\t{card.deck_id}\t{card.card_name}")
+
+dict = {14:2, 16:23}
+dict = None
+dict.get(14)

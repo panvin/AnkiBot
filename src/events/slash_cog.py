@@ -1,15 +1,14 @@
-from dataclasses import MISSING
 from disnake.ext import commands
-from  disnake.utils import get
 from database.query import Query
 from views.batch_management import BatchManagementView
+from views.batch_select import BatchSelectView
 from views.deck_management  import DeckManagementView
 from views.card_management import CardManagementView
+from views.deck_select import DeckSelectView
 from views.modals import *
-from disnake import Colour, Embed
+from disnake import Colour
 import disnake
-import asyncio
-import genanki
+
 
 
 class SlashCog(commands.Cog):
@@ -40,7 +39,7 @@ class SlashCog(commands.Cog):
     # Create a Batch with Modal
     @commands.slash_command(description = "Création d'une nouvelle Promotion")
     async def create_batch(self, inter: disnake.CommandInteraction):
-        """Création d'une nouvelle promotion 
+        """Création d'une nouvelle Promotion 
 
         Parameters
         ---------- 
@@ -57,33 +56,36 @@ class SlashCog(commands.Cog):
         Parameters
         ---------- 
         """
-        await inter.response.send_modal()
+        batches_list = self.get_available_batches(inter.author)
 
-        #await inter.response.send_message(embed=embed, ephemeral=True)
+        if batches_list is None or len(batches_list) == 0:
+            await inter.response.send_message(" Vous n'êtes membre d'aucune promotion", ephemeral=True)
+        elif len(batches_list) == 1:
+            deck_modal = DeckModal(interaction_id = inter.id, batch_id = batches_list[0].id)
+            await inter.response.send_modal( modal = deck_modal)
+        else:
+            deck_view = BatchSelectView(batches_list)
+            await inter.response.send_message( "Création:" , view = deck_view, ephemeral = True)
 
     @commands.slash_command(description = "Création d'une nouvelle Carte question")
-    async def create_card(self, inter: disnake.CommandInteraction , deck_id :int):
-        
+    async def create_card(self, inter: disnake.CommandInteraction):
+        """Création d'une nouvelle Carte question
 
-        card_modal = CardModal(interaction_id = inter.id, deck_id = deck_id)
-        await inter.response.send_modal( modal = card_modal)
+        Parameters
+        ---------- 
+        """
+        batches_list = self.get_available_batches(inter.author)
 
-        # Waits until the user submits the modal.
-        try:
-            modal_inter: disnake.ModalInteraction = await self.bot.wait_for(
-                "modal_submit",
-                check=lambda i: i.custom_id == "create_card" and i.author.id == inter.author.id,
-                timeout=300,
-            )
-        except asyncio.TimeoutError:
-            # The user didn't submit the modal in the specified period of time.
-            # This is done since Discord doesn't dispatch any event for when a modal is closed/dismissed.
-            return
-
-        embed = disnake.Embed(title="Ajout d'une carte")
-        for custom_id, value in modal_inter.text_values.items():
-            embed.add_field(name=custom_id.capitalize(), value=value, inline=False)
-        await modal_inter.response.send_message(embed=embed)
+        if batches_list is None or len(batches_list) == 0:
+            await inter.response.send_message(" Vous n'êtes membre d'aucune promotion", ephemeral=True)
+        elif len(batches_list) == 1:
+            batch_id = batches_list[0].id
+            available_deck = self.query.get_decks_list_from_batch(batch_id)
+            deck_view = DeckSelectView(available_deck)
+            await inter.response.send_message( "Création:" , view = deck_view, ephemeral = True)
+        else:
+            deck_view = BatchSelectView(batches_list)
+            await inter.response.send_message( "Création:" , view = deck_view, ephemeral = True)
 
     def confirmation_deck_embed(self, deck_name, deck_id, deck_manager=None):
         
