@@ -1,24 +1,13 @@
 import disnake
-from views.deck_select import DeckSelectView
-from views.dropdown import BatchDropdown
-from views.modals import  DeckModal
-from database.query import Query
+from ui.batch_view import BatchView
+from ui.deck_select_view import DeckSelectView
+from ui.modals import  DeckModal
 
-class BatchSelectView(disnake.ui.View):
-    message: disnake.Message
+class BatchSelectView(BatchView):
 
     def __init__(self, batch_list):
-        super().__init__(timeout=300.0)
-        self.query = Query()
-        self.batches_list=batch_list
+        super().__init__(timeout=300.0, batch_list = batch_list)
         
-        ########################## Première Ligne
-        
-        # Menu déroulant contenant les decks
-        self.batch_dropdown=BatchDropdown(row = 1, is_disabled = False, batch_list = batch_list)
-        self.batch_dropdown.callback=self.select_batch_callback
-        self.add_item(self.batch_dropdown)
-
         ########################## Seconde Ligne
         
         # Bouton d'ajout de promotions
@@ -37,11 +26,7 @@ class BatchSelectView(disnake.ui.View):
 
         self.add_deck_batch_button.disabled = False
         self.add_card_batch_button.disabled = False
-        for option in self.batch_dropdown.options:
-            if option.value == interaction.values[0]:
-                option.default = True
-            else:
-                option.default = False
+        super().select_batch_callback(interaction = interaction)
         await interaction.response.edit_message("**Création:** ", view=self)
 
     async def add_deck_batch_callback(self, interaction: disnake.MessageInteraction):
@@ -65,26 +50,3 @@ class BatchSelectView(disnake.ui.View):
         decks_list = self.query.get_decks_list_from_batch(batch_id)
         deck_view = DeckSelectView(decks_list)
         await interaction.response.edit_message("Création: ", view = deck_view, ephemeral = True)
-
-
-
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-        

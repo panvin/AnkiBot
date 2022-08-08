@@ -1,24 +1,13 @@
 import disnake
-from views.batch_select import BatchSelectView
-from views.deck_select import DeckSelectView
-from views.dropdown import CardDropdown
-from views.modals import CardModal
-from database.query import Query
+from ui.batch_select_view import BatchSelectView
+from ui.deck_select_view import DeckSelectView
+from ui.card_view import CardView
+from ui.modals import CardModal
 
-class CardManagementView(disnake.ui.View):
-    message: disnake.Message
+class CardManagementView(CardView):
 
     def __init__(self, cards_list):
-        super().__init__(timeout=300.0)
-        self.query = Query()
-        self.cards_list = cards_list
-        
-        ########################## Première Ligne
-
-        # Menu déroulant contenant les cartes questions
-        self.card_dropdown=CardDropdown(row = 1, is_disabled = False, cards_list=cards_list)
-        self.card_dropdown.callback=self.select_card_callback
-        self.add_item(self.card_dropdown)
+        super().__init__(timeout=300.0, cards_list = cards_list)
 
         ########################## Seconde Ligne
 
@@ -49,11 +38,7 @@ class CardManagementView(disnake.ui.View):
         self.show_card_button.disabled   = False
         self.update_card_button.disabled = False
         self.delete_card_button.disabled = False
-        for option in self.card_dropdown.options:
-            if option.value == interaction.values[0]:
-                option.default = True
-            else:
-                option.default = False
+        super().select_card_callback(interaction = interaction)
         await interaction.response.edit_message("**Gestion des Cartes:** ", view=self)
 
     async def add_card_callback(self, interaction: disnake.MessageInteraction):
@@ -106,7 +91,7 @@ class CardManagementView(disnake.ui.View):
         ---------- 
         """
         selected_card_id=int(self.card_dropdown.values[0])
-        card = Query().get_card_by_id(selected_card_id)
+        card = self.query.get_card_by_id(selected_card_id)
         card_modal = CardModal(interaction_id = interaction.id, deck_id = card.deck_id, card = card)
         await interaction.response.send_modal( modal = card_modal)
         #supression du message initial ou mise à jour de la liste de batch
@@ -121,6 +106,7 @@ class CardManagementView(disnake.ui.View):
         for role in member.roles:
             role_id.append(role.id)
         return self.query.get_batches_from_roles(role_list = role_id)
+
     
     
 

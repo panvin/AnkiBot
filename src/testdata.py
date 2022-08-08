@@ -28,7 +28,7 @@ S = 10  # number of characters in the string.
 #        sleep(1)
 #    except sqlite3.IntegrityError as err:
 #        print(f"Erreur Foreign Key pour le batch_id = 2")
-
+"""
 print("Liste des batches")
 batches = query.get_batches_from_roles([1004066091590496322])
 for batch in batches:
@@ -47,3 +47,21 @@ for card in cards:
 dict = {14:2, 16:23}
 dict = None
 dict.get(14)
+"""
+
+first = [i for i in range(1,50)]
+option_list = []
+if(len(first) > 25):
+    chunk = first[0:24] + ['suivant...']
+    option_list.append(chunk)
+    i = 24
+    while len(first) - i > 23:
+        chunk = ['précédent...'] + first[i:i+23] + ['suivant...']
+        option_list.append(chunk)
+        i = i+23
+    chunk = ['précédent...'] + first[i:]
+    option_list.append(chunk)
+else:
+    option_list.append(first)
+
+print(option_list)

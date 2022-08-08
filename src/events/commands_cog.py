@@ -1,7 +1,5 @@
 from disnake.ext import commands
 from disnake import Colour, Embed
-from database.query import Query
-from views.deck_management import DeckManagementView
 import random
 
 class MessageCog(commands.Cog):

@@ -1,21 +1,12 @@
 import disnake
-from views.dropdown import DeckDropdown
 from database.query import Query
-from views.modals import CardModal
+from ui.deck_view import DeckView
+from ui.modals import CardModal
 
-class DeckSelectView(disnake.ui.View):
+class DeckSelectView(DeckView):
 
     def __init__(self, decks_list):
-        super().__init__(timeout=300.0)
-        self.query = Query()
-        self.decks_list=decks_list
-        
-        ########################## Première Ligne
-        
-        # Menu déroulant contenant les decks
-        self.deck_dropdown=DeckDropdown(row = 1, is_disabled = False, deck_list = decks_list)
-        self.deck_dropdown.callback=self.select_deck_callback
-        self.add_item(self.deck_dropdown)
+        super().__init__(timeout=300.0, decks_list = decks_list)
 
         ########################## Seconde Ligne
 
@@ -28,14 +19,8 @@ class DeckSelectView(disnake.ui.View):
 
     async def select_deck_callback(self, interaction: disnake.MessageInteraction):
         self.add_card_button.disabled   = False
-    
-        for option in self.deck_dropdown.options:
-            if option.value == interaction.values[0]:
-                option.default = True
-            else:
-                option.default = False
-
-        await interaction.response.edit_message("**Gestion des decks:** ", view=self)
+        super().select_deck_callback(interaction = interaction)
+        await interaction.response.edit_message("**Création:** ", view=self)
 
     async def add_card_callback(self, interaction: disnake.MessageInteraction):
         """Création d'une nouvelle carte 

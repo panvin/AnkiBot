@@ -1,24 +1,16 @@
 import disnake
-from views.batch_select import BatchSelectView
-from views.dropdown import DeckDropdown
+from ui.batch_select_view import BatchSelectView
+from ui.deck_view import DeckView
 from database.query import Query
-from views.modals import DeckModal
-from views.card_management import CardManagementView
+from ui.modals import DeckModal
+from ui.card_management_view import CardManagementView
 
-class DeckManagementView(disnake.ui.View):
+class DeckManagementView(DeckView):
 
     def __init__(self, decks_list):
-        super().__init__(timeout=300.0)
-        self.query = Query()
+        super().__init__(timeout=300.0, decks_list = decks_list)
         self.decks_list=decks_list
         
-        ########################## Première Ligne
-        
-        # Menu déroulant contenant les decks
-        self.deck_dropdown=DeckDropdown(row = 1, is_disabled = False, deck_list = decks_list)
-        self.deck_dropdown.callback=self.select_deck_callback
-        self.add_item(self.deck_dropdown)
-
         ########################## Seconde Ligne
 
         # Bouton d'affichage d'information
@@ -53,13 +45,7 @@ class DeckManagementView(disnake.ui.View):
         self.manage_card_button.disabled = False
         self.update_deck_button.disabled = False
         self.delete_deck_button.disabled = False
-        
-        for option in self.deck_dropdown.options:
-            if option.value == interaction.values[0]:
-                option.default = True
-            else:
-                option.default = False
-
+        super().select_deck_callback(interaction=interaction)
         await interaction.response.edit_message("**Gestion des decks:** ", view=self)
 
     async def add_deck_callback(self, interaction: disnake.MessageInteraction):
@@ -118,10 +104,10 @@ class DeckManagementView(disnake.ui.View):
         card_list = self.query.get_cards_list(selected_deck_id)
         
         if card_list is None or len(card_list) == 0: 
-            await interaction.response.send_message("Le deck ne contient aucune carte", ephemeral = True)
+            await interaction.response.send_message("Le Deck ne contient aucune carte", ephemeral = True)
         else:
             new_view = CardManagementView(card_list)
-            await interaction.response.edit_message("**Gestion des Decks:** ", view=new_view)
+            await interaction.response.edit_message("**Gestion des Cartes:** ", view=new_view)
     
     async def update_deck_callback(self, interaction: disnake.MessageInteraction):
         """Mise à jour du nom du Deck 

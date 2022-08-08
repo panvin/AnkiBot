@@ -1,12 +1,11 @@
 from disnake.ext import commands
 from database.query import Query
-from views.batch_management import BatchManagementView
-from views.batch_select import BatchSelectView
-from views.deck_management  import DeckManagementView
-from views.card_management import CardManagementView
-from views.deck_select import DeckSelectView
-from views.modals import *
-from disnake import Colour
+from ui.batch_management_view import BatchManagementView
+from ui.deck_management_view  import DeckManagementView
+from ui.card_management_view import CardManagementView
+from ui.batch_select_view import BatchSelectView
+from ui.deck_select_view import DeckSelectView
+from ui.modals import *
 import disnake
 
 
@@ -86,25 +85,6 @@ class SlashCog(commands.Cog):
         else:
             deck_view = BatchSelectView(batches_list)
             await inter.response.send_message( "Création:" , view = deck_view, ephemeral = True)
-
-    def confirmation_deck_embed(self, deck_name, deck_id, deck_manager=None):
-        
-        if(not deck_manager):
-            deck_manager="Non défini"
-        
-        embed = disnake.Embed(title="Création de deck", color=Colour.blue())
-        deck_title="__Nom du deck:__"
-        deck_value=f"{deck_name}"
-        manager_title="__Responsable du dek:__"
-        manager_value=f"{deck_manager}"
-        help_title="__Commandes utilitaires__"
-        help_value=f"__Ajout/Modification du responsable:__\n `/update_deck_manager {deck_id} <@utilisateur>/<@rôle>`\n __Gestion des decks__: `/manage_deck`"
-
-        embed.add_field(name = deck_title,    value = deck_value,inline=False)
-        embed.add_field(name = manager_title, value = manager_value,inline=False)
-        embed.add_field(name = help_title,    value = help_value,inline=False)
-        return embed
-
 
     @commands.slash_command(description="Gestionnaire de Promotions")
     async def manage_batches(self, inter: disnake.CommandInteraction):

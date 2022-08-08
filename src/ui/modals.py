@@ -5,6 +5,7 @@ class BatchModal(disnake.ui.Modal):
     
     def __init__(self, interaction_id, batch = None):
         self.batch = batch
+        self.query = Query()
         self.batch_custom_id = f"batch-modal-{interaction_id}"
         if batch is None:
             initial_value = None
@@ -38,15 +39,13 @@ class BatchModal(disnake.ui.Modal):
             default_member = inter.guild_id
             default_channel = self.get_authorized_channel(inter.guild)
             delay = None
-            Query().create_batch(server_id = guild_id, name = name, manager = default_manager, member = default_member, channel = default_channel, delay = delay)
-            await inter.response.send_message("Nouvelle promotion crée")
+            self.query.create_batch(server_id = guild_id, name = name, manager = default_manager, member = default_member, channel = default_channel, delay = delay)
+            await inter.response.send_message("Nouvelle Promotion créée")
 
         else:
             batch_id = self.batch.id
-            Query().update_batch_name(batch_id = batch_id, name = name)
-            await inter.response.send_message("Nom de la promotion mis à jour")
-
-        
+            self.query.update_batch_name(batch_id = batch_id, name = name)
+            await inter.response.send_message("Promotion mise à jour") 
 
 #    async def on_error(self, error: Exception, inter: disnake.ModalInteraction):
 #        await inter.response.send_message(f"An error occurred!\n```{error}```")
@@ -63,6 +62,7 @@ class DeckModal(disnake.ui.Modal):
     
     def __init__(self, interaction_id, batch_id :int, deck = None):
         self.deck = deck
+        self.query = Query()
         self.batch_id = batch_id
         self.deck_custom_id = f"deck-modal-{interaction_id}"
         if deck is None:
@@ -94,15 +94,13 @@ class DeckModal(disnake.ui.Modal):
         if self.deck is None:
             parent_batch_id = self.batch_id
             default_manager = None
-            Query().create_deck(batch_id = parent_batch_id, deck_name = name, manager = default_manager)
-            await inter.response.send_message("Nouveau deck crée")
+            self.query.create_deck(batch_id = parent_batch_id, deck_name = name, manager = default_manager)
+            await inter.response.send_message("Nouveau Deck crée")
 
         else:
             deck_id = self.deck.id
-            Query().update_deck_name(deck_id = deck_id, name = name)
-            await inter.response.send_message("Nom du deck mis à jour")
-
-        
+            self.query.update_deck_name(deck_id = deck_id, name = name)
+            await inter.response.send_message("Deck mis à jour")
 
 #    async def on_error(self, error: Exception, inter: disnake.ModalInteraction):
 #        await inter.response.send_message(f"An error occurred!\n```{error}```")
@@ -111,6 +109,7 @@ class CardModal(disnake.ui.Modal):
     
     def __init__(self, interaction_id, deck_id :int, card = None):
         self.card = card
+        self.query = Query()
         self.deck_id = deck_id
         self.card_custom_id = f"card-modal-{interaction_id}"
         if card is None:
@@ -166,16 +165,14 @@ class CardModal(disnake.ui.Modal):
 
         if self.card is None:
             parent_deck_id = self.deck_id
-            Query().create_card(deck_id = parent_deck_id, card_name = name, first_field = first_field, second_field = second_field)
+            self.query.create_card(deck_id = parent_deck_id, card_name = name, first_field = first_field, second_field = second_field)
             await inter.response.send_message("Nouvelle Carte question créée")
 
         else:
             card_id = self.card.id
             
-            Query().update_card_fields(card_id = card_id, name = name, first_field = first_field, second_field = second_field)
+            self.query.update_card_fields(card_id = card_id, name = name, first_field = first_field, second_field = second_field)
             await inter.response.send_message("Carte mise à jour", ephemeral = True)
-
-        
 
 #    async def on_error(self, error: Exception, inter: disnake.ModalInteraction):
 #        await inter.response.send_message(f"An error occurred!\n```{error}```")
