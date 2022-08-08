@@ -1,12 +1,13 @@
 import disnake
 from database.query import Query
-from ui.deck_view import DeckView
+from ui.dropdown_view import DropDownView
 from ui.modals import CardModal
 
-class DeckSelectView(DeckView):
+class DeckSelectView(DropDownView):
 
     def __init__(self, decks_list):
-        super().__init__(timeout=300.0, decks_list = decks_list)
+        placeholder = "Choix du Deck"
+        super().__init__(timeout=300.0, fn_select_option = self.deck_select_option, placeholder = placeholder, item_list = decks_list)
 
         ########################## Seconde Ligne
 
@@ -17,9 +18,12 @@ class DeckSelectView(DeckView):
 
     # Définition des callback des élément graphiques
 
-    async def select_deck_callback(self, interaction: disnake.MessageInteraction):
-        self.add_card_button.disabled   = False
-        super().select_deck_callback(interaction = interaction)
+    async def select_callback(self, interaction: disnake.MessageInteraction):
+        if interaction.values[0] == "+" or interaction.values[0] == "-":
+            self.add_card_button.disabled   = True
+        else:
+            self.add_card_button.disabled   = False
+        super().select_callback(interaction = interaction)
         await interaction.response.edit_message("**Création:** ", view=self)
 
     async def add_card_callback(self, interaction: disnake.MessageInteraction):
@@ -28,24 +32,13 @@ class DeckSelectView(DeckView):
         Parameters
         ---------- 
         """
-        selected_deck = self.deck_dropdown.values[0]
+        selected_deck = self.item_dropdown.values[0]
         card_modal = CardModal(interaction_id=interaction.id, deck_id = selected_deck) 
         await interaction.response.send_modal( modal = card_modal)
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-        
+    def deck_select_option(self, deck):
+        return disnake.SelectOption(
+                    label=deck.deck_name,
+                    description = f"Promotion: {deck.batch.batch_name}",
+                    value=str(deck.id)
+        )

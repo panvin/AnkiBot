@@ -1,5 +1,6 @@
 import disnake
 from database.query import Query
+from ui.anki_embed import AnkiEmbed
 
 class BatchModal(disnake.ui.Modal):
     
@@ -39,13 +40,17 @@ class BatchModal(disnake.ui.Modal):
             default_member = inter.guild_id
             default_channel = self.get_authorized_channel(inter.guild)
             delay = None
-            self.query.create_batch(server_id = guild_id, name = name, manager = default_manager, member = default_member, channel = default_channel, delay = delay)
-            await inter.response.send_message("Nouvelle Promotion créée")
+            batch = self.query.create_batch(server_id = guild_id, name = name, manager = default_manager, member = default_member, channel = default_channel, delay = delay)
+            deck_count = 0
+            embed = AnkiEmbed().batch_embed(guild = inter.guild , batch = batch, deck_count = deck_count)
+            await inter.response.send_message("Nouvelle Promotion créée", embed = embed, ephemeral = True)
 
         else:
             batch_id = self.batch.id
-            self.query.update_batch_name(batch_id = batch_id, name = name)
-            await inter.response.send_message("Promotion mise à jour") 
+            batch = self.query.update_batch_name(batch_id = batch_id, name = name)
+            deck_count = self.query.count_decks_in_batches(batch_id = batch.id)
+            embed = AnkiEmbed().batch_embed(guild = inter.guild , batch = batch, deck_count = deck_count)
+            await inter.response.send_message("Promotion mise à jour", embed = embed, ephemeral = True) 
 
 #    async def on_error(self, error: Exception, inter: disnake.ModalInteraction):
 #        await inter.response.send_message(f"An error occurred!\n```{error}```")
@@ -94,13 +99,17 @@ class DeckModal(disnake.ui.Modal):
         if self.deck is None:
             parent_batch_id = self.batch_id
             default_manager = None
-            self.query.create_deck(batch_id = parent_batch_id, deck_name = name, manager = default_manager)
-            await inter.response.send_message("Nouveau Deck crée")
+            deck = self.query.create_deck(batch_id = parent_batch_id, deck_name = name, manager = default_manager)
+            card_count = 0
+            embed = AnkiEmbed().deck_embed(guild = inter.guild, deck = deck, card_count = card_count)
+            await inter.response.send_message("Nouveau Deck crée", embed = embed, ephemeral = True)
 
         else:
             deck_id = self.deck.id
-            self.query.update_deck_name(deck_id = deck_id, name = name)
-            await inter.response.send_message("Deck mis à jour")
+            deck = self.query.update_deck_name(deck_id = deck_id, name = name)
+            card_count = self.query.count_cards_in_decks(deck_id = deck.id)
+            embed = AnkiEmbed().deck_embed(guild = inter.guild, deck = deck, card_count = card_count)
+            await inter.response.send_message("Deck mis à jour", embed = embed, ephemeral = True)
 
 #    async def on_error(self, error: Exception, inter: disnake.ModalInteraction):
 #        await inter.response.send_message(f"An error occurred!\n```{error}```")
@@ -165,14 +174,16 @@ class CardModal(disnake.ui.Modal):
 
         if self.card is None:
             parent_deck_id = self.deck_id
-            self.query.create_card(deck_id = parent_deck_id, card_name = name, first_field = first_field, second_field = second_field)
-            await inter.response.send_message("Nouvelle Carte question créée")
+            card = self.query.create_card(deck_id = parent_deck_id, card_name = name, first_field = first_field, second_field = second_field)
+            embed = AnkiEmbed().card_embed(card = card)
+            await inter.response.send_message("Nouvelle Carte question créée", embed = embed, ephemeral = True)
 
         else:
             card_id = self.card.id
             
-            self.query.update_card_fields(card_id = card_id, name = name, first_field = first_field, second_field = second_field)
-            await inter.response.send_message("Carte mise à jour", ephemeral = True)
+            card = self.query.update_card_fields(card_id = card_id, name = name, first_field = first_field, second_field = second_field)
+            embed = AnkiEmbed().card_embed(card = card)
+            await inter.response.send_message("Carte mise à jour", embed = embed, ephemeral = True)
 
 #    async def on_error(self, error: Exception, inter: disnake.ModalInteraction):
 #        await inter.response.send_message(f"An error occurred!\n```{error}```")

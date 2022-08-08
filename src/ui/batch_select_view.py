@@ -1,12 +1,13 @@
 import disnake
-from ui.batch_view import BatchView
 from ui.deck_select_view import DeckSelectView
+from ui.dropdown_view import DropDownView
 from ui.modals import  DeckModal
 
-class BatchSelectView(BatchView):
+class BatchSelectView(DropDownView):
 
     def __init__(self, batch_list):
-        super().__init__(timeout=300.0, batch_list = batch_list)
+        placeholder = "Choix de la Promotion"
+        super().__init__(timeout=300.0, fn_select_option = self.batch_select_option, placeholder = placeholder, item_list = batch_list)
         
         ########################## Seconde Ligne
         
@@ -22,11 +23,15 @@ class BatchSelectView(BatchView):
         
     # Définition des callback des élément graphiques
 
-    async def select_batch_callback(self, interaction: disnake.MessageInteraction):
+    async def select_callback(self, interaction: disnake.MessageInteraction):
 
-        self.add_deck_batch_button.disabled = False
-        self.add_card_batch_button.disabled = False
-        super().select_batch_callback(interaction = interaction)
+        if interaction.values[0] == "+" or interaction.values[0] == "-":
+            self.add_deck_batch_button.disabled = True
+            self.add_card_batch_button.disabled = True
+        else:
+            self.add_deck_batch_button.disabled = False
+            self.add_card_batch_button.disabled = False
+        super().select_callback(interaction = interaction)
         await interaction.response.edit_message("**Création:** ", view=self)
 
     async def add_deck_batch_callback(self, interaction: disnake.MessageInteraction):
@@ -35,7 +40,7 @@ class BatchSelectView(BatchView):
         Parameters
         ---------- 
         """
-        batch_id = self.batch_dropdown.values[0]
+        batch_id = self.item_dropdown.values[0]
         deck_modal = DeckModal(interaction_id = interaction.id, batch_id = batch_id)
         await interaction.response.send_modal( modal = deck_modal)
         #supression du message initial ou mise à jour de la liste de batch
@@ -46,7 +51,16 @@ class BatchSelectView(BatchView):
         Parameters
         ---------- 
         """
-        batch_id = self.batch_dropdown.values[0]
+        batch_id = self.item_dropdown.values[0]
         decks_list = self.query.get_decks_list_from_batch(batch_id)
-        deck_view = DeckSelectView(decks_list)
-        await interaction.response.edit_message("Création: ", view = deck_view, ephemeral = True)
+        if(decks_list is not None and len(decks_list) > 0):
+            deck_view = DeckSelectView(decks_list)
+            await interaction.response.edit_message("Création: ", view = deck_view)
+        else:
+            await interaction.response.send_message("La Promotion ne contient aucun Deck", ephemeral = True)
+
+    def batch_select_option(self, batch):
+        return disnake.SelectOption(
+                    label=batch.batch_name,
+                    value=str(batch.id)
+                )

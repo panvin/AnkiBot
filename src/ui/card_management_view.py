@@ -1,13 +1,15 @@
 import disnake
+from ui.anki_embed import AnkiEmbed
 from ui.batch_select_view import BatchSelectView
 from ui.deck_select_view import DeckSelectView
-from ui.card_view import CardView
+from ui.dropdown_view import DropDownView
 from ui.modals import CardModal
 
-class CardManagementView(CardView):
+class CardManagementView(DropDownView):
 
     def __init__(self, cards_list):
-        super().__init__(timeout=300.0, cards_list = cards_list)
+        placeholder = "Choix de la Carte question"
+        super().__init__(timeout=300.0, fn_select_option = self.card_select_option, placeholder = placeholder, item_list = cards_list)
 
         ########################## Seconde Ligne
 
@@ -33,12 +35,17 @@ class CardManagementView(CardView):
 
     # Définition des callback des élément graphiques
 
-    async def select_card_callback(self, interaction: disnake.MessageInteraction):
+    async def select_callback(self, interaction: disnake.MessageInteraction):
 
-        self.show_card_button.disabled   = False
-        self.update_card_button.disabled = False
-        self.delete_card_button.disabled = False
-        super().select_card_callback(interaction = interaction)
+        if interaction.values[0] == "+" or interaction.values[0] == "-":
+            self.show_card_button.disabled   = True
+            self.update_card_button.disabled = True
+            self.delete_card_button.disabled = True
+        else:
+            self.show_card_button.disabled   = False
+            self.update_card_button.disabled = False
+            self.delete_card_button.disabled = False
+        super().select_callback(interaction = interaction)
         await interaction.response.edit_message("**Gestion des Cartes:** ", view=self)
 
     async def add_card_callback(self, interaction: disnake.MessageInteraction):
@@ -50,7 +57,7 @@ class CardManagementView(CardView):
         # Construction de la liste de promotion et de deck à partiur des cartes dans la view
         batches_list = []
         decks_list = [] 
-        for card in self.cards_list:
+        for card in self.item_list:
             if card.deck_id is not None and card.deck_id not in decks_list:
                 decks_list.append(card.deck_id)
                 if card.deck.batch_id is not None and card.deck.batch_id not in batches_list:
@@ -71,18 +78,20 @@ class CardManagementView(CardView):
     
     async def show_card_callback(self, interaction: disnake.MessageInteraction):
 
+        """Affichage d'informations et de commandes relatives à la Carte question affichée 
+
+        Parameters
+        ---------- 
+        """
         choosen_card = None
-        for card in self.cards_list:
-            if card.id == int(self.card_dropdown.values[0]):
+        for card in self.item_list:
+            if card.id == int(self.item_dropdown.values[0]):
                 choosen_card = card
                 break
 
         if choosen_card is not None:
-            message = f"**Nom de la Carte:** {choosen_card.card_name} - **ID:** {choosen_card.id}\n**Nom du Deck:** {choosen_card.deck.deck_name} - **ID:** {choosen_card.deck_id}\n**Question: **{choosen_card.first_field}\n**Réponse:** {choosen_card.second_field}"
-        else:
-            message = "Une erreur s'est produit, impossible d'afficher les informations"
-        await interaction.send(message, ephemeral=True)
-    
+            embed = AnkiEmbed().card_embed(choosen_card)
+        await interaction.send(embed = embed, ephemeral=True)
     
     async def update_card_callback(self, interaction: disnake.MessageInteraction):
         """Mise à jour du nom du Deck 
@@ -90,7 +99,7 @@ class CardManagementView(CardView):
         Parameters
         ---------- 
         """
-        selected_card_id=int(self.card_dropdown.values[0])
+        selected_card_id=int(self.item_dropdown.values[0])
         card = self.query.get_card_by_id(selected_card_id)
         card_modal = CardModal(interaction_id = interaction.id, deck_id = card.deck_id, card = card)
         await interaction.response.send_modal( modal = card_modal)
@@ -107,23 +116,9 @@ class CardManagementView(CardView):
             role_id.append(role.id)
         return self.query.get_batches_from_roles(role_list = role_id)
 
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-        
+    def card_select_option(self, card):
+        return disnake.SelectOption(
+                    label = card.card_name,
+                    description = f"Deck: {card.deck.deck_name}",
+                    value = str(card.id)
+                )      

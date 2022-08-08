@@ -27,7 +27,7 @@ class AnkiEmbed():
         
         deck_manager = batch_manager = self.get_member_or_role_from_id(guild = guild, id =deck.deck_manager)
         
-        embed = disnake.Embed(title="Informations deck", color=Colour.blue())
+        embed = disnake.Embed(title="Informations Deck", color=Colour.blue())
         details_title = "__Détails:__"
         details_value=f"**Nom:** {deck.deck_name} - **ID: **{deck.id}\n**Responsable:** {deck_manager}\n**Nombre de Cartes contenu dans le Deck:** {card_count}"
         help_title="__Commandes utilitaires__"
@@ -39,20 +39,17 @@ class AnkiEmbed():
 
     def card_embed(self, card):
         
-        embed = disnake.Embed(title="Création de deck", color=Colour.blue())
+        embed = disnake.Embed(title="Informations Carte question", color=Colour.blue())
         details_title = "__Détails:__"
         details_value=f"**Nom:** {card.card_name} - **ID: **{card.id}"
         question_title = "__Question:__"
         question_value=f"{card.first_field}"
         answer_title = "__Réponse:__"
         answer_value=f"{card.second_field}"
-        help_title="__Commandes utilitaires__"
-        help_value=f"__Gestion des Cartes__: `/manage_cards`"
-
+        
         embed.add_field(name = details_title,  value = details_value,  inline=False)
         embed.add_field(name = question_title, value = question_value, inline=False)
         embed.add_field(name = answer_title,   value = answer_value,   inline=False)
-        embed.add_field(name = help_title,     value = help_value,     inline=False)
         return embed
 
 
