@@ -1,10 +1,13 @@
+import os
 from disnake.ext import commands
 from database.query import Query
+from ui.batch_download_view import BatchDownloadView
 from ui.batch_management_view import BatchManagementView
 from ui.deck_management_view  import DeckManagementView
 from ui.card_management_view import CardManagementView
 from ui.batch_select_view import BatchSelectView
 from ui.deck_select_view import DeckSelectView
+from settings import output_path
 from ui.modals import *
 import disnake
 
@@ -168,6 +171,12 @@ class SlashCog(commands.Cog):
             print(f"Promo déjà crée, suite de l'initialisation")
             await inter.send("Le bot a déjà été initialisé sur le serveur.")
         else:
+            try:
+                os.makedirs(output_path, exist_ok = True)
+                print("Directory '%s' created successfully" % output_path)
+            except OSError as error:
+                print("Directory '%s' can not be created" % output_path)
+            
             # Recherche du premier channel dans lequel on peux poster un message et on le définit comme channel par défaut
             default_channel = None
             for channel in guild.text_channels:
@@ -180,26 +189,21 @@ class SlashCog(commands.Cog):
             print(f"Promo crée avec succès, suite de l'initialisation")
             await inter.send("La promotion a été crée avec succès, le bot est prêt")
 
-"""
-    @commands.slash_command(description="Génération de deck anki")
-    async def generate_anki_deck(self, inter: disnake.CommandInteraction, ):
-        my_model = genanki.Model(
-        1607392319,
-        'Simple Model',
-        fields=[
-            {'name': 'Question'},
-            {'name': 'Answer'},
-        ],
-        templates=[
-            {
-            'name': 'Card 1',
-            'qfmt': '{{Question}}',
-            'afmt': '{{FrontSide}}<hr id="answer">{{Answer}}',
-            },
-        ])
+    @commands.slash_command(description = "Téléchargements de Decks")
+    async def download(self, inter: disnake.CommandInteraction):
+        """Sélectiond de decks à Télécharger
 
-    #def generate_list_anki_deck():
-"""
+        Parameters
+        ---------- 
+        """
+        available_batch = self.get_available_batches(inter.author)
+
+        if available_batch is not None and len(available_batch) > 0:
+            batch_view = BatchDownloadView(available_batch)
+            await inter.response.send_message( "**Téléchargement:**" , view = batch_view, ephemeral = True)
+
+        else:
+            await inter.response.send_message("⚠️ Vous n'avez accès à aucune Promotion", ephemeral = True)
 
 def setup(bot : commands.Bot):
     bot.add_cog(SlashCog(bot))

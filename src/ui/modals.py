@@ -47,7 +47,8 @@ class BatchModal(disnake.ui.Modal):
 
         else:
             batch_id = self.batch.id
-            batch = self.query.update_batch_name(batch_id = batch_id, name = name)
+            self.query.update_batch_name(batch_id = batch_id, name = name)
+            batch = self.query.get_batch_by_id(id = batch_id)
             deck_count = self.query.count_decks_in_batches(batch_id = batch.id)
             embed = AnkiEmbed().batch_embed(guild = inter.guild , batch = batch, deck_count = deck_count)
             await inter.response.send_message("Promotion mise à jour", embed = embed, ephemeral = True) 
@@ -106,7 +107,8 @@ class DeckModal(disnake.ui.Modal):
 
         else:
             deck_id = self.deck.id
-            deck = self.query.update_deck_name(deck_id = deck_id, name = name)
+            self.query.update_deck_name(deck_id = deck_id, name = name)
+            deck = self.query.get_deck_by_id(id = deck_id)
             card_count = self.query.count_cards_in_decks(deck_id = deck.id)
             embed = AnkiEmbed().deck_embed(guild = inter.guild, deck = deck, card_count = card_count)
             await inter.response.send_message("Deck mis à jour", embed = embed, ephemeral = True)
@@ -181,7 +183,8 @@ class CardModal(disnake.ui.Modal):
         else:
             card_id = self.card.id
             
-            card = self.query.update_card_fields(card_id = card_id, name = name, first_field = first_field, second_field = second_field)
+            self.query.update_card_fields(card_id = card_id, name = name, first_field = first_field, second_field = second_field)
+            card = self.query.get_card_by_id(id = card_id)
             embed = AnkiEmbed().card_embed(card = card)
             await inter.response.send_message("Carte mise à jour", embed = embed, ephemeral = True)
 

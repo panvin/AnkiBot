@@ -71,17 +71,18 @@ class DeckManagementView(DropDownView):
         """
         batches_list = []
         for deck in self.item_list:
-            if deck.batch_id is not None and deck.batch_id not in batches_list:
-                batches_list.append(deck.batch_id)
+            if deck.batch is not None and deck.batch not in batches_list:
+                batches_list.append(deck.batch)
 
         if batches_list is None or len(batches_list) == 0:
             await interaction.response.send_message(" Vous n'êtes membre d'aucune promotion", ephemeral=True)
         elif len(batches_list) == 1:
-            deck_modal = DeckModal(interaction_id = interaction.id, batch_id = batches_list[0])
+            batch = batches_list[0]
+            deck_modal = DeckModal(interaction_id = interaction.id, batch_id = batch.id)
             await interaction.response.send_modal( modal = deck_modal)
         else:
             deck_view = BatchSelectView(batches_list)
-            await interaction.response.edit_message( "Création:" , view = deck_view, ephemeral = True)
+            await interaction.response.edit_message( "Création:" , view = deck_view)
 
     async def show_deck_callback(self, interaction: disnake.MessageInteraction):
         """Affichage d'informations et de commandes relatives au Deck affiché 

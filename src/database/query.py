@@ -102,12 +102,22 @@ class Query:
 
     @connection_wrapper
     def update_deck_name(self, deck_id: int, name: str):
-        query = Decks.update(deck_name=name).where(Decks.id == deck_id)
+        query = Decks.update(deck_name=name, is_updated=True).where(Decks.id == deck_id)
+        return query.execute()
+
+    @connection_wrapper
+    def update_deck_state(self, deck_id: int):
+        query = Decks.update(is_updated=False).where(Decks.id == deck_id)
         return query.execute()
 
     @connection_wrapper
     def get_decks_from_roles(self, role_list : list[int]):
         decks_list = Decks.select().join(Batches, on=(Decks.batch_id == Batches.id)).where(Batches.batch_member << role_list)
+        return decks_list
+
+    @connection_wrapper
+    def get_decks_to_update(self):
+        decks_list = Decks.select().where(Decks.is_updated == True)
         return decks_list
 
     @connection_wrapper
@@ -130,8 +140,13 @@ class Query:
 
     @connection_wrapper
     def update_card_fields(self, card_id: int, name: str, first_field: str, second_field: str):
-        query = Cards.update(card_name = name, first_field = first_field, second_field = second_field).where(Cards.id == card_id)
-        return query.execute()
+        number_of_row_updated = 0
+        card = Cards.get_or_none(card_id)
+        query = Cards.update(card_name = name, first_field = first_field, second_field = second_field).where(Cards.id == card_id).execute()
+        number_of_row_updated += query
+        query = Decks.update(is_updated = True).where(Decks.id == card.deck_id).execute()
+        number_of_row_updated += query
+        return number_of_row_updated
 
     @connection_wrapper
     def get_card_by_id(self, id: int):

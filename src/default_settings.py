@@ -10,3 +10,5 @@ my_discord_token='token_ici'
 db_path='/path/vers/ma/db.sqlite'
 # Id du serveuir de test
 test_guild=00000000000000
+# Path pour la génération de fichiers
+output_path='/home/vincent/anki'

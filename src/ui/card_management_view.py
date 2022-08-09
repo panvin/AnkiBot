@@ -58,23 +58,23 @@ class CardManagementView(DropDownView):
         batches_list = []
         decks_list = [] 
         for card in self.item_list:
-            if card.deck_id is not None and card.deck_id not in decks_list:
-                decks_list.append(card.deck_id)
-                if card.deck.batch_id is not None and card.deck.batch_id not in batches_list:
-                    batches_list.append(card.deck.batch_id)
+            if card.deck is not None and card.deck not in decks_list:
+                decks_list.append(card.deck)
+                if card.deck.batch_id is not None and card.deck.batch not in batches_list:
+                    batches_list.append(card.deck.batch)
 
         if batches_list is None or len(batches_list) == 0:
             await interaction.response.send_message(" Vous n'êtes membre d'aucune promotion", ephemeral=True)
         elif len(batches_list) == 1 and len(decks_list) == 1:
-            deck_id =   decks_list[0]
-            card_modal = CardModal(interaction_id = interaction.id, deck_id = deck_id)  
+            deck =   decks_list[0]
+            card_modal = CardModal(interaction_id = interaction.id, deck_id = deck.id)  
             await interaction.response.send_modal( modal = card_modal)
         elif len(batches_list) == 1 and len(decks_list) > 1:
             deck_view = DeckSelectView(decks_list)
             await interaction.response.edit_message( "Création:" , view = deck_view)
         else:
-            deck_view = BatchSelectView(batches_list)
-            await interaction.response.edit_message( "Création:" , view = deck_view)
+            batch_view = BatchSelectView(batches_list)
+            await interaction.response.edit_message( "Création:" , view = batch_view)
     
     async def show_card_callback(self, interaction: disnake.MessageInteraction):
 

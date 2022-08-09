@@ -71,13 +71,20 @@ class DropDownView(disnake.ui.View):
 
     def select_callback(self, interaction: disnake.MessageInteraction):
 
-        if interaction.values[0] == "+" or interaction.values[0] == "-":
+        if "+" in interaction.values or "-" in interaction.values:
+
             for option in self.item_dropdown.options:
                 option.default = False
-            self.item_dropdown.update_options(value = interaction.values[0])
+            if "+" in interaction.values:
+                interaction.values.remove("+")
+                self.item_dropdown.update_options(value = "+")
+            elif "-" in interaction.values:
+                interaction.values.remove("-")
+                self.item_dropdown.update_options(value = "-")
+            
         else:   
             for option in self.item_dropdown.options:
-                if option.value == interaction.values[0]:
+                if option.value in interaction.values:
                     option.default = True
                 else:
                     option.default = False
